@@ -7,7 +7,7 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
 <html>
   <head>
     <title>cløck</title>
-    <link rel='stylesheet' href='https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css'>
+    <link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'>
     <link href='//fonts.googleapis.com/css?family=Oswald' rel='stylesheet'>
     <link href='//fonts.googleapis.com/css?family=Michroma' rel='stylesheet'>
     <meta name='viewport' content='width=device-width, height=device-height, initial-scale=1.0'>
