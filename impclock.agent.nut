@@ -64,7 +64,7 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
             </tr>
           </table>
         </div>
-        <p class='text-center' style='font-family:Oswald'>&nbsp;<br><small>cløck copyright &copy; 2014-17 Black Pyramid (Time)</small><br>&nbsp;<br><img src='https://electricimp.com/docs/attachments/squinter/rassilon.png' width='32' height='32'></p>
+        <p class='text-center' style='font-family:Oswald'>&nbsp;<br><small>cløck copyright &copy; 2014-17 Black Pyramid (Time)</small><br>&nbsp;<br><img src='https://smittytone.github.io/rassilon.png' width='32' height='32'></p>
       </div>
     </div>
 
@@ -97,7 +97,7 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
 
       // Functions
       function updateSlider() {
-        $('.brightness-status span').text(slider.value);
+        $('.brightness-status span').text($('#brightness').val());
         setbright();
       }
 
@@ -112,7 +112,7 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
 
         var b = parseInt(s[4]);
         $('.brightness-status span').text(b);
-        $('[name=brightness]').val(b);
+        $('#brightness').val(b);
 
         updateState(s[8]);
 
@@ -186,8 +186,7 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
       }
 
       function setbright() {
-        var d = { 'setbright' : ($('[name=brightness]').val()) };
-        $('.brightness-status span').text($('[name=brightness]').val());
+        var d = { 'setbright' : ($('#brightness').val()) };
         sendstate(d);
       }
 
