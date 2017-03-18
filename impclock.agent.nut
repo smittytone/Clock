@@ -10,7 +10,7 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
     <link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'>
     <link href='//fonts.googleapis.com/css?family=Oswald' rel='stylesheet'>
     <link href='//fonts.googleapis.com/css?family=Michroma' rel='stylesheet'>
-    <meta name='viewport' content='width=device-width, height=device-height, initial-scale=1.0'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     <style>
       .center { margin-left: auto; margin-right: auto; margin-bottom: auto; margin-top: auto; }
       body {background-color: #6BA6D7;}
@@ -23,8 +23,8 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
     </style>
   </head>
   <body>
-    <div class='container' style='padding: 20px'>
-      <div class='container' style='border: 2px solid white'>
+    <div class='container' style='padding: 20px;'>
+      <div style='border: 2px solid white'>
         <h2 align='center'>cløck&trade;</h2>
         <p align='center'>Your Digital Clock<br>&nbsp;</p>
         <div class='controls' align='center'>
