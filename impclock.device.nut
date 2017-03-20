@@ -232,7 +232,7 @@ function setUTC(string) {
         settings.utc = false;
     } else {
         settings.utc = true;
-        settings.offset = 12 - string.tointeger();
+        settings.offset = string.tointeger() - 12;
     }
 }
 
@@ -291,7 +291,7 @@ function setPrefs(prefsTable) {
     settings.flash = prefsTable.flash;
     settings.colon = prefsTable.colon;
     settings.utc = prefsTable.utc;
-    settings.offset = 12 - prefsTable.offset;
+    settings.offset = prefsTable.offset - 12;
     settings.brightness = prefsTable.brightness;
     settings.on = prefsTable.on;
 

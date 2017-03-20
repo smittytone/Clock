@@ -38,20 +38,30 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
                 <div class='mode-checkbox' style='color:white;font-family:Michroma'>
                   <small><input type='checkbox' name='bst' id='bst' value='bst'> Apply Daylight Savings Time Automatically</small>
                 </div>
-                <div class='slider'>
-                  <p class='brightness-status'>&nbsp;<br>Brightness</p>
-                  <input type='range' name='brightness' id='brightness' value='15' min='1' max='15'>
-                  <p class='brightness-status' align='right'><span></span></p>
-                </div>
                 <div class='seconds-checkbox' style='color:white;font-family:Michroma'>
                   <small><input type='checkbox' name='seconds' id='seconds' value='seconds'> Show Seconds Indicator</small>
                 </div>
                 <div class='flash-checkbox' style='color:white;font-family:Michroma'>
                   <small><input type='checkbox' name='flash' id='flash' value='seconds'> Flash Seconds Indicator</small>
                 </div>
-                <p>&nbsp;</p>
+                <div class='slider'>
+                  <p>&nbsp;<br>Brightness</p>
+                  <input type='range' name='brightness' id='brightness' value='15' min='1' max='15'>
+                  <p class='brightness-status' align='right'><span></span></p>
+                </div>
                 <div class='onoff-button' style='color:dimGrey;font-family:Oswald;weight:bold' align='center'>
                   <button type='submit' id='onoff' style='height:32px;width:200px'>Turn off Display</button>
+                </div>
+                <hr>
+                <div class='utc-controls'>
+                  <p>World Time</p>
+                  <div class='utc-checkbox' style='color:white;font-family:Michroma'>
+                    <small><input type='checkbox' name='utc' id='utc' value='utc'> Show World Time</small>
+                  </div>
+                  <div class='utc-slider'>
+                    <input type='range' name='utcs' id='utcs' value='0' min='0' max='24'>
+                    <p class='utc-status' align='right'>Offset from local time: <span></span> hours</p>
+                  </div>
                 </div>
                 <hr>
                 <p align='center' class='clock-status'><i><span>This cløck is online</span></i></p>
@@ -83,22 +93,37 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
       $('#bst').click(setbst);
       $('#seconds').click(setcolon);
       $('#flash').click(setflash);
+      $('#utc').click(setutc);
       // $('#debug').click(setdebug);
 
       // Buttons
       $('.reset-button button').click(reset);
       $('.onoff-button button').click(setlight);
 
-      // Slider
+      // Brightness Slider
       var slider = document.getElementById('brightness');
       slider.addEventListener('mouseup', updateSlider);
       slider.addEventListener('touchend', updateSlider);
       $('.brightness-status span').text(slider.value);
 
+      // Brightness Slider
+      slider = document.getElementById('utcs');
+      slider.addEventListener('mouseup', updateutc);
+      slider.addEventListener('touchend', updateutc);
+      $('.utc-status span').text(slider.value);
+
       // Functions
       function updateSlider() {
         $('.brightness-status span').text($('#brightness').val());
         setbright();
+      }
+
+      function updateutc() {
+        var u = $('#utcs').val();
+        $('.utc-status span').text(u - 12);
+        if (document.getElementById('utc').checked == true) {
+          setutc();
+        }
       }
 
       function updateReadout(data) {
@@ -107,6 +132,11 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
         document.getElementById('bst').checked = (s[1] == '1') ? true : false;
         document.getElementById('seconds').checked = (s[3] == '1') ? true : false;
         document.getElementById('flash').checked = (s[2] == '1') ? true : false;
+        document.getElementById('utc').checked = (s[5] == '1') ? true : false;
+        var u = parseInt(s[6]);
+        $('.utc-status span').text(u - 12);
+        $('#utcs').val(u);
+
         $('.onoff-button button').text((s[7] == '1') ? 'Turn off Display' : 'Turn on Display');
         displayon = (s[7] == '1');
 
@@ -195,6 +225,11 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
         $('.onoff-button button').text(displayon ? 'Turn off Display' : 'Turn on Display');
         var s = (displayon ? '1' : '0');
         var d = { 'setlight' :  s };
+        sendstate(d);
+      }
+
+      function setutc() {
+        var d = { 'setutc' : ((document.getElementById('utc').checked == true) ? '1' : '0'), 'utcval' : $('#utcs').val() };
         sendstate(d);
       }
 
@@ -287,14 +322,15 @@ function appResponse() {
     //   1.1.1.1.01.1.01.1.d
     //
     // for the values
-    //   mode
-    //   bst state
-    //   colon flash
-    //   colon state
-    //   brightness
-    //   utc state
-    //   utc offset
-    //   display state
+    //   0. mode
+    //   1. bst state
+    //   2. colon flash
+    //   3. colon state
+    //   4. brightness
+    //   5. utc state
+    //   6. utc offset
+    //   7. display state
+    //   8. connection status
     //
     // UTC offset is the value for the app's UIPicker, ie. 0 to 24
     // (mapping in device code to offset values of +12 to -12)
@@ -326,11 +362,7 @@ function appResponse() {
     rs = rs + ((prefs.utc) ? "1." : "0.");
 
     // Add UTC offset
-    if (prefs.offset < 10) {
-        rs = rs + "0." + prefs.offset.tostring();
-    } else {
-        rs = rs + prefs.offset.tostring() + ".";
-    }
+    rs = rs + prefs.offset.tostring() + ".";
 
 	// Add clock state as 1-digit value
 	rs = rs + ((prefs.on) ? "1." : "0.");
@@ -352,7 +384,7 @@ function resetToDefaults() {
 	prefs.utc = false;
 	prefs.flash = true;
 	prefs.colon = true;
-	prefs.offset = 12;
+	prefs.offset = 0;
 	prefs.brightness = 15;
 	prefs.on = true;
 	prefs.alarms = [];
@@ -382,7 +414,7 @@ prefs = {};
 prefs.hrmode <- true;
 prefs.bst <- true;
 prefs.utc <- false;
-prefs.offset <- 12;
+prefs.offset <- 0;
 prefs.brightness <- 15;
 prefs.flash <- true;
 prefs.colon <- true;
@@ -394,7 +426,7 @@ local loadPrefs = server.load();
 if (loadPrefs.len() != 0) {
     // Table is NOT empty so set the prefs to the loaded table
     prefs = loadPrefs;
-    if (debug) server.log("Clock settings loaded");
+    if (debug) server.log("Clock settings loaded: " + appResponse());
 }
 
 // This is the signal from the device that it is ready,
@@ -514,6 +546,27 @@ api.post("/settings", function(context) {
             if (server.save(prefs) > 0) server.error("Could not save display light setting");
             if (debug) server.log("Clock display turned " + (prefs.on ? "on" : "off"));
             device.send("clock.set.light", (prefs.on ? 1 : 0));
+        }
+
+        if ("setutc" in data) {
+            if (data.setutc == "0") {
+                prefs.utc = false;
+                device.send("clock.set.utc", "N");
+            } else if (data.setutc == "1") {
+                prefs.utc = true;
+                if ("utcval" in data) {
+                    server.log(data.utcval);
+                    prefs.offset = data.utcval.tointeger();
+                    device.send("clock.set.utc", data.utcval);
+                }
+            } else {
+                if (debug) server.error("Attempt to pass an mis-formed parameter to setutc");
+                contex.send(400, "Mis-formed parameter sent");
+                return;
+            }
+
+            if (server.save(prefs) > 0) server.error("Could not save world time setting");
+            if (debug) server.log("World time turned " + (prefs.utc ? "on" : "off") + ", offset: " + prefs.offset);
         }
 
         context.send(200, "OK");
