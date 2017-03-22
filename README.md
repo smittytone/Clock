@@ -10,6 +10,8 @@ A very simple four-digit timepiece developed using the [Electric Imp Platform](h
 - 1x [Adafruit 1.2in 8x8 LED Matrix + I&sup2;C Backpack](https://www.adafruit.com/products/1856)
 - 4x short female-to-female connector wires
 
+![cløck](pic01.jpg)
+
 ### Assembly
 
 1. Assemble the Adafruit display and backpack
