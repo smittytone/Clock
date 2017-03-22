@@ -16,7 +16,7 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
     <style>
       .center { margin-left: auto; margin-right: auto; margin-bottom: auto; margin-top: auto; }
       body {background-color: #6BA6D7;}
-      p {color: white; font-family: Michroma}
+      p {color: white; font-family: Michroma; font-size:0.9em}
       h2 {color: white; font-family: Michroma; font-weight:bold}
       h4 {color: white; font-family: Michroma}
       td {color: white; font-family: Michroma}
@@ -34,6 +34,7 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
             <tr>
               <td width='20%%'>&nbsp;</td>
               <td width='60%%'>
+                <h4>General Settings</h4>
                 <div class='mode-checkbox' style='color:white;font-family:Michroma'>
                   <small><input type='checkbox' name='mode' id='mode' value='mode'> 24-Hour Mode (Switch off for AM/PM)</small>
                 </div>
@@ -57,7 +58,7 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
                 </div>
                 <hr>
                 <div class='utc-controls'>
-                  <p>World Time</p>
+                  <h4>World Time</h4>
                   <div class='utc-checkbox' style='color:white;font-family:Michroma'>
                     <small><input type='checkbox' name='utc' id='utc' value='utc'> Show World Time</small>
                   </div>
