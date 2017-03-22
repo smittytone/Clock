@@ -35,6 +35,8 @@ A very simple four-digit timepiece developed using the [Electric Imp Platform](h
 
 Visit your cløck’s agent URL for a control interface.
 
+![cløck UI](grab01.png)
+
 ## Licence
 
 The cløck design and software is copyright &copy; 2014-17 Tony Smith and made available under the [MIT Licence](./LICENSE).
