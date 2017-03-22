@@ -49,7 +49,8 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
                 <div class='slider'>
                   <p>&nbsp;<br>Brightness</p>
                   <input type='range' name='brightness' id='brightness' value='15' min='1' max='15'>
-                  <p class='brightness-status' align='right'><span></span></p>
+                  <table width='100%%'><tr><td width='50%%' align='left'><small>Low</small></td><td width='50%%' align='right'><small>High</small></td></tr></table>
+                  <p class='brightness-status' align='right'>Current: <span></span></p>
                 </div>
                 <div class='onoff-button' style='color:dimGrey;font-family:Oswald;weight:bold' align='center'>
                   <button type='submit' id='onoff' style='height:32px;width:200px'>Turn off Display</button>
@@ -62,6 +63,7 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
                   </div>
                   <div class='utc-slider'>
                     <input type='range' name='utcs' id='utcs' value='0' min='0' max='24'>
+                    <table width='100%%'><tr><td width='30%%' align='left'><small>-12</small></td><td width='40%%' align='center'><small>0</small></td><td width='30%%' align='right'><small>+12</small></td></tr></table>
                     <p class='utc-status' align='right'>Offset from local time: <span></span> hours</p>
                   </div>
                 </div>
