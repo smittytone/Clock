@@ -79,7 +79,7 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
             </tr>
           </table>
         </div>
-        <p class='text-center' style='font-family:Oswald'>&nbsp;<br><small>cløck copyright &copy; 2014-17 Black Pyramid (Time)</small><br>&nbsp;<br><img src='https://smittytone.github.io/rassilon.png' width='32' height='32'></p>
+        <p class='text-center' style='font-family:Oswald'>&nbsp;<br><small>cløck copyright &copy; 2014-17 Black Pyramid (Time)</small><br>&nbsp;<br><img src='https://smittytone.github.io/images/rassilon.png' width='32' height='32'></p>
       </div>
     </div>
 
