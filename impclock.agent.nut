@@ -8,8 +8,8 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
   <head>
     <title>cløck</title>
     <link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'>
-    <link href='//fonts.googleapis.com/css?family=Oswald' rel='stylesheet'>
-    <link href='//fonts.googleapis.com/css?family=Michroma' rel='stylesheet'>
+    <link href='https://fonts.googleapis.com/css?family=Oswald' rel='stylesheet'>
+    <link href='https://fonts.googleapis.com/css?family=Michroma' rel='stylesheet'>
     <link rel='apple-touch-icon' href='https://smittytone.github.io/images/ati-clock.png'>
     <link rel='shortcut icon' href='https://smittytone.github.io/images/ico-clock.ico' />
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
