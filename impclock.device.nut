@@ -277,7 +277,8 @@ function setLight(value) {
 }
 
 function setDebug(state) {
-    debug = (state == 1);
+    debug = state;
+    server.log("Device-side debug messages " + ((debug) ? "enabled" : "disabled"));
 }
 
 function setAlarm(alarmTime) {
