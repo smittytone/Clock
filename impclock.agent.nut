@@ -1,8 +1,14 @@
+// Clock
+// Copyright 2014-17, Tony Smith
+
+// Import EI libraries...
 #require "Rocky.class.nut:2.0.0"
 
 // CONSTANTS
+
 const APP_NAME = "Clock";
 const APP_VERSION = "1.0";
+
 const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
 <html>
     <head>
@@ -319,6 +325,7 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
 </html>";
 
 // MAIN VARIABLES
+
 local prefs = null;
 local api = null;
 local debug = false;
@@ -326,11 +333,11 @@ local debug = false;
 // FUNCTIONS
 
 function sendPrefs() {
-    // Clock has requested the current set-up data, so send it as a table
+    // The clock has requested the current settings data, so send it as a table
     device.send("clock.set.prefs", prefs);
 
     if (debug) {
-    	// Also switch the device to debug mode
+    	// Also switch the device to debug mode as appropriate
     	device.send("clock.set.debug", true);
     	server.log("Clock told to enter debug mode");
     } else {
@@ -367,40 +374,32 @@ function appResponse() {
     if (prefs.hrmode == true) rs = "1.";
 
     // Add BST status as a 1-digit value
-    rs = rs + ((prefs.bst) ? "1." : "0.");
+    rs = rs + (prefs.bst ? "1." : "0.");
 
     // Add colon flash status as a 1-digit value
-    rs = rs + ((prefs.flash) ? "1." : "0.");
+    rs = rs + (prefs.flash ? "1." : "0.");
 
     // Add colon state as a 1-digit value
-    rs = rs + ((prefs.colon) ? "1." : "0.");
+    rs = rs + (prefs.colon ? "1." : "0.");
 
-    // Add brightness as a two-digit value
-    if (prefs.brightness < 10) {
-        rs = rs + "0" + prefs.brightness.tostring() + ".";
-    } else {
-        rs = rs + prefs.brightness.tostring() + ".";
-    }
+    // Add brightness as a 1- or 2-digit value
+    rs = rs + prefs.brightness.tostring() + ".";
 
     // Add UTC status as a 1-digit value
-    rs = rs + ((prefs.utc) ? "1." : "0.");
+    rs = rs + (prefs.utc ? "1." : "0.");
 
-    // Add UTC offset
+    // Add UTC offset as a 1- or 2-digit value (0-24)
     local o = prefs.offset + 12;
     rs = rs + o.tostring() + ".";
 
 	// Add clock state as 1-digit value
-	rs = rs + ((prefs.on) ? "1." : "0.");
+	rs = rs + (prefs.on ? "1." : "0.");
 
     // Add d indicate disconnected, or c
-    if (!device.isconnected()) {
-        rs = rs + "d.";
-    } else {
-        rs = rs + "c.";
-    }
+    rs = rs + (device.isconnected() ? "d." : "c.");
 
     // Add debug info
-    rs = rs + ((debug) ? "1" : "0");
+    rs = rs + (debug ? "1" : "0");
 
     return rs;
 }
@@ -418,6 +417,8 @@ function resetToDefaults() {
 	prefs.alarms = [];
 	debug = false;
 
+    // Clear the prefs and re-save
+    // NOTE This is handy if we change the number of keys in prefs table
 	server.save({});
 	server.save(prefs);
 }
@@ -429,7 +430,7 @@ function resetToDefaults() {
 //    HRMODE: true/false for 24/12-hour view
 //    BST: true for observing BST, false for GMT
 //    UTC: true/false for UTC set/unset
-//    OFFSET: 0-24 for GMT offset (subtract 12 for actual value)
+//    OFFSET: GMT offset (-12 to +12)
 //    BRIGHTNESS: 1 to 15 for boot-set LED brightness
 //    FLASH: true/false for colon flashing or static
 //    COLON: true/false for colon visible or not
@@ -446,37 +447,43 @@ prefs.colon <- true;
 prefs.brightness <- 15;
 prefs.on <- true;
 
-local loadPrefs = server.load();
+// Load in the server-saved preferences table
+local savedPrefs = server.load();
 
-if (loadPrefs.len() != 0) {
-    // Table is NOT empty so set the prefs to the loaded table
-    prefs = loadPrefs;
+if (savedPrefs.len() != 0) {
+    // Table is NOT empty so set 'prefs' to the loaded table
+    prefs = savedPrefs;
     if (debug) server.log("Clock settings loaded: " + appResponse());
 }
 
-// This is the signal from the device that it is ready,
+// Register device-sent message handlers:
+// NOTE This is the signal from the device that it is ready,
 // so all device-sending events should be registered here
 device.on("clock.get.prefs", function(dummy) {
 	sendPrefs();
 });
 
-// Set up the API
+// Set up the web API
 api = Rocky();
 
 api.get("/", function(context) {
+    // A GET request made to root, so return the UI HTML
     context.send(200, format(HTML_STRING, http.agenturl()));
 });
 
 api.get("/state", function(context) {
+    // A GET request made to /state, so return clock's connection state
     local a = (device.isconnected() ? "c" : "d");
     context.send(200, a);
 });
 
 api.get("/settings", function(context) {
+    // A GET request made to /settings, so return the clock settings
     context.send(200, appResponse());
 });
 
 api.post("/settings", function(context) {
+    // A POST request made to /settings, so apply the requested setting
     try {
         local data = http.jsondecode(context.req.rawbody);
 
@@ -604,11 +611,13 @@ api.post("/settings", function(context) {
 });
 
 api.post("/action", function(context) {
+    // A POST request made to /action, so perform the requested action
     try {
         local data = http.jsondecode(context.req.rawbody);
 
         if ("action" in data) {
             if (data.action == "reset") {
+                // A RESET message sent
                 resetToDefaults();
                 device.send("clock.set.prefs", prefs);
                 if (debug) server.log("Clock settings reset");
@@ -616,6 +625,7 @@ api.post("/action", function(context) {
             }
 
             if (data.action == "debug") {
+                // A DEBUG message sent
                 debug = (data.debug == "1") ? true : false;
                 device.send("clock.set.debug", debug);
                 server.log("Debug mode " + (debug ? "on" : "off"));
