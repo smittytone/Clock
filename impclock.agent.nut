@@ -335,14 +335,6 @@ local debug = false;
 function sendPrefs() {
     // The clock has requested the current settings data, so send it as a table
     device.send("clock.set.prefs", prefs);
-
-    if (debug) {
-    	// Also switch the device to debug mode as appropriate
-    	device.send("clock.set.debug", true);
-    	server.log("Clock told to enter debug mode");
-    } else {
-    	device.send("clock.set.debug", false);
-    }
 }
 
 function appResponse() {
@@ -456,7 +448,7 @@ if (savedPrefs.len() != 0) {
     // Table is NOT empty so set 'prefs' to the loaded table
     prefs = savedPrefs;
 
-    if !("debug" in prefs) {
+    if (!("debug" in prefs)) {
         // No debug key in prefs, so add it
         prefs.debug <- debug;
         server.save(prefs);
