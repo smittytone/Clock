@@ -1,5 +1,12 @@
+// Clock
+// Copyright 2014-17, Tony Smith
+
+// Import EI libraries...
 #require "utilities.nut:1.0.0"
 
+// ... and local libraries
+// NOTE If you're not using Squinter or an equivalent tool,
+// cut and paste the name library code over the following line
 #import "../HT16K33Segment/HT16K33Segment.class.nut"
 
 // Set up WiFi disconnection response policy right at the start
@@ -16,74 +23,78 @@ const HALF_TICK_TOTAL = 2;
 
 // Objects
 local display = null;
-local disMessage = null;
+local discMessage = null;
 local tickTimer = null;
 local settings = null;
 local alarms = [];
 
 // Numeric values
-local minutes = 0;
 local hours = 0;
+local minutes = 0;
 local seconds = 0;
 local tickCount = 0;
-local disTime = -1;
+local discTime = -1;
 
 // Runtime flags
 local tickFlag = true;
 local pmFlag = false;
-local disFlag = false;
+local discFlag = false;
 local debug = false;
 local alarmFlag = 0;
 
 // DISPLAY FUNCTIONS
 
 function setDisplay() {
-    // Controls the display
+    // The main function for updating the display
 
     // Not showing the LED? bail
-    // NOTE if settings.on == false, the display will already be powered down
+    // NOTE if settings.on is false, the display will already be powered down
     if (!settings.on) return;
 
     // Set the digit counters a and b
     local a = hours;
     local b = 0;
 
-    // Zero the display buffer
+    // Clear the display and colon
     display.clearBuffer().setColon(false);
 
-    // Hours
+    // Set the hours digits
     if (settings.hrmode == true) {
-        // 24 hour clock
+        // 24-hour clock mode
+        // NOTE The first digit's decimal point is set if the clock is disconnected
+        // ie. if 'discFlag' is true
         if (a < 10) {
-            display.writeNumber(0, 16, disFlag);
+            display.writeNumber(0, 16, discFlag);
             display.writeNumber(1, a, false);
         } else if (a > 9 && a < 20) {
-            display.writeNumber(0, 1, disFlag)
+            display.writeNumber(0, 1, discFlag)
             display.writeNumber(1, a - 10, false);
         } else if (a > 19) {
-            display.writeNumber(0, 2, disFlag);
+            display.writeNumber(0, 2, discFlag);
             display.writeNumber(1, a - 20, false);
         }
     } else {
-        // 12 hour clock
+        // 12-hour clock mode
+        // NOTE The first digit's decimal point is set if the clock is disconnected,
+        // ie. if 'discFlag' is true
         if (a == 12 || a == 0 ) {
-            display.writeNumber(0, 1, disFlag);
+            display.writeNumber(0, 1, discFlag);
             display.writeNumber(1, 2, false);
         } else if (a < 10) {
-            display.writeNumber(0, 16, disFlag);
+            display.writeNumber(0, 16, discFlag);
             display.writeNumber(1, a, false);
         } else if (a == 10 || a == 11) {
-            display.writeNumber(0, 1, disFlag);
+            display.writeNumber(0, 1, discFlag);
             display.writeNumber(1, a - 10, false);
         } else if (a > 12 && a < 22) {
             display.writeNumber(1, a - 12, false);
         } else if (a == 22 || a == 23) {
-            display.writeNumber(0, 1, disFlag);
+            display.writeNumber(0, 1, discFlag);
             display.writeNumber(1, a - 22, false);
         }
     }
 
-    // Minutes
+    // Set the minutes digits
     if (minutes > 9) {
         a = minutes;
         while (a >= 0) {
@@ -91,14 +102,16 @@ function setDisplay() {
             b++;
         }
 
-        display.writeNumber(4, (minutes - (10 * (b - 1))), pmFlag && !settings.hrmode);
+        // NOTE The fourth digit's decimal point is set if the clock is in 12-hour mode
+        // and we're in PM time, ie. if 'pmFlag' is true
+        display.writeNumber(4, (minutes - (10 * (b - 1))), (pmFlag && !settings.hrmode));
         display.writeNumber(3, b - 1, false);
     } else {
-        display.writeNumber(4, minutes, pmFlag && !settings.hrmode);
+        display.writeNumber(4, minutes, (pmFlag && !settings.hrmode));
         display.writeNumber(3, 0, false);
     }
 
-    // Check whether the colon should appear
+    // If the colon should appear - its on permanently or in a flash - set it
     local colonState = false;
 
     if (settings.colon) {
@@ -112,8 +125,7 @@ function setDisplay() {
     // Update the screen with time and colon
     display.setColon(colonState).updateDisplay();
 
-    // Check for alarms
-
+    // Check for alarms **** EXPERIMENTAL ****
     if (alarmFlag == 1) display.setDisplayFlash(2);
     if (alarmFlag == -1) display.setDisplayFlash(0);
     alarmFlag = 0;
@@ -156,14 +168,11 @@ function clockTick() {
     }
 
     // Is it PM?
-    pmFlag = false;
-    if (hours > 11) pmFlag = true;
+    pmFlag = (hours > 11) ? true : false;
 
-    // Update the tick counter
-    tickCount++;
-    tickFlag = false;
-    if (tickCount == TICK_TOTAL) tickCount = 0;
-    if (tickCount < HALF_TICK_TOTAL) tickFlag = true;
+    // Update the tick counter and flag
+    tickCount = (tickCount == TICK_TOTAL) ? 0 : tickCount + 1;
+    tickFlag = (tickCount < HALF_TICK_TOTAL) ? true : false;
 
     // Check for Alarms
     checkAlarms();
@@ -173,6 +182,7 @@ function clockTick() {
 }
 
 function checkAlarms() {
+    // Do we need to display an alarm screen flash? **** EXPERIMENTAL ****
     if (alarms.len() > 0) {
         foreach (alarm in alarms) {
             if (alarm.hours == hours && alarm.minutes == minutes) {
@@ -183,7 +193,7 @@ function checkAlarms() {
                     alarm.offhours = alarm.hours;
                     if (alarm.offminutes > 59) {
                         alarm.offminutes = 60 - alarm.offminutes;
-                        ++alarm.offhours;
+                        alarm.offhours++;
                         if (alarm.offhours > 23) alarm.offhours = 24 - alarm.offhours;
                     }
 
@@ -205,13 +215,13 @@ function checkAlarms() {
                 alarms.remove(i);
                 if (debug) server.log("Alarm deleted");
             } else {
-                ++i;
+                i++;
             }
         }
     }
 }
 
-// SERVER-RELATED FUNCTIONS
+// PREFERENCES-RELATED FUNCTIONS
 
 function switchMode(value) {
     // This function is called when 12/24 modes are switched by app
@@ -238,8 +248,6 @@ function setUTC(value) {
         settings.offset = value;
     }
 }
-
-// PREFS-RELATED FUNCTIONS
 
 function setBright(brightness) {
     // This function is called when the app changes the clock's brightness
@@ -290,7 +298,7 @@ function setDebug(state) {
 }
 
 function setAlarm(alarmTime) {
-
+    // Program an alarm **** EXPERIMENTAL ****
 }
 
 function setPrefs(prefsTable) {
@@ -315,45 +323,53 @@ function setPrefs(prefsTable) {
     alarms = prefsTable.alarms;
 }
 
-// Disconnection-related Functions
+// DISCONNECTION/CONNECTION FUNCTIONS
 
-function disHandler(reason) {
+function discHandler(reason) {
     // Called if the server connection is broken or re-established
     if (reason != SERVER_CONNECTED) {
         // Server is not connected
-        if (disTime == -1) {
-            disTime = time();
+        if (discTime == -1) {
+            // If we have no disconnection time recorded, set it now
+            discTime = time();
             local now = date();
-            disMessage = format("Went offline at %02d:%02d:%02d", now.hour, now.min, now.sec);
+            discMessage = format("Went offline at %02d:%02d:%02d", now.hour, now.min, now.sec);
         }
 
-        disFlag = true;
+        // Record that the clock is disconnected
+        discFlag = true;
+
+        // Set an attempt to reconnect in 'DIS_TIMEOUT' seconds
         imp.wakeup(DIS_TIMEOUT, reconnect);
     } else {
         // Server is connected
         if (debug) {
-            server.log(disMessage);
-            server.log("Back online after " + ((time() - disTime) * 1000) + " seconds");
+            server.log(discMessage);
+            server.log("Back online after " + ((time() - discTime) * 1000) + " seconds");
         }
 
-        disTime = -1;
-        disFlag = false;
-        disMessage = null;
+        // Reset the disconnected flags and saved data
+        discTime = -1;
+        discFlag = false;
+        discMessage = null;
     }
 }
 
 function reconnect() {
+    // Called when necessary in order to attempt to reconnect to the server
     if (server.isconnected()) {
-        disHandler(SERVER_CONNECTED);
+       // Is the clock already connected? If so trigger the 'connected' flow via 'discHandler()'
+       discHandler(SERVER_CONNECTED);
     } else {
-        server.connect(disHandler, 30);
+        // The clock is still disconnected, so attempt to connect
+        server.connect(discHandler, 30);
     }
 }
 
 // START OF PROGRAM
 
-// Set up WiFi disconnection response policy
-server.onunexpecteddisconnect(disHandler);
+// Register the WiFi disconnection handler
+server.onunexpecteddisconnect(discHandler);
 
 // Configure the display
 hardware.i2c12.configure(CLOCK_SPEED_400_KHZ);
@@ -361,9 +377,10 @@ display = HT16K33Segment(hardware.i2c12, 0x70, debug);
 display.init();
 
 // Display the inital text, 'sync'
+// This will appear until the device receives settings from the agent
 syncText();
 
-// Initialise prefs
+// Initialise the clock's local preferences store
 settings = {};
 settings.hrmode <- true;
 settings.bst <- true;
