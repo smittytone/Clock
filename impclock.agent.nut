@@ -156,7 +156,7 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
                 document.getElementById('utc').checked = (s[5] == '1') ? true : false;
                 document.getElementById('debug').checked = (s[9] == '1') ? true : false;
                 var u = parseInt(s[6]);
-                $('.utc-status span').text(u - 12);
+                $('.utc-status span').text(u);
                 $('#utcs').val(u);
 
                 $('.onoff-button button').text((s[7] == '1') ? 'Turn off Display' : 'Turn on Display');
@@ -321,7 +321,7 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
 // MAIN VARIABLES
 local prefs = null;
 local api = null;
-local debug = true;
+local debug = false;
 
 // FUNCTIONS
 
@@ -386,7 +386,8 @@ function appResponse() {
     rs = rs + ((prefs.utc) ? "1." : "0.");
 
     // Add UTC offset
-    rs = rs + prefs.offset.tostring() + ".";
+    local o = prefs.offset + 12;
+    rs = rs + o.tostring() + ".";
 
 	// Add clock state as 1-digit value
 	rs = rs + ((prefs.on) ? "1." : "0.");
@@ -409,12 +410,13 @@ function resetToDefaults() {
 	prefs.hrmode = true;
 	prefs.bst = true;
 	prefs.utc = false;
-	prefs.offset = 12;
+	prefs.offset = 0;
 	prefs.colon = true;
 	prefs.flash = true;
 	prefs.brightness = 15;
 	prefs.on = true;
 	prefs.alarms = [];
+	debug = false;
 
 	server.save({});
 	server.save(prefs);
@@ -438,7 +440,7 @@ prefs = {};
 prefs.hrmode <- true;
 prefs.bst <- true;
 prefs.utc <- false;
-prefs.offset <- 12;
+prefs.offset <- 0;
 prefs.flash <- true;
 prefs.colon <- true;
 prefs.brightness <- 15;
@@ -492,7 +494,7 @@ api.post("/settings", function(context) {
 
             if (server.save(prefs) > 0) server.error("Could not save mode setting");
             if (debug) server.log("Clock mode turned to " + (prefs.hrmode ? "24 hour" : "12 hour"));
-            device.send("clock.switch.mode", (prefs.hrmode ? 24 : 12));
+            device.send("clock.switch.mode", prefs.hrmode);
         }
 
         // Check for a BST set/unset message
@@ -509,7 +511,7 @@ api.post("/settings", function(context) {
 
             if (server.save(prefs) > 0) server.error("Could not save BST/GMT setting");
             if (debug) server.log("Clock bst observance turned " + (prefs.bst ? "on" : "off"));
-            device.send("clock.switch.bst", (prefs.bst ? 1 : 0));
+            device.send("clock.switch.bst", prefs.bst);
         }
 
         // Check for a set brightness message
@@ -534,7 +536,7 @@ api.post("/settings", function(context) {
 
             if (server.save(prefs) > 0) server.error("Could not save colon flash setting");
             if (debug) server.log("Clock colon flash turned " + (prefs.flash ? "on" : "off"));
-            device.send("clock.switch.flash", (prefs.flash ? 1 : 0));
+            device.send("clock.switch.flash", prefs.flash);
         }
 
         // Check for a set colon show message
@@ -551,7 +553,7 @@ api.post("/settings", function(context) {
 
             if (server.save(prefs) > 0) server.error("Could not save colon visibility setting");
             if (debug) server.log("Clock colon turned " + (prefs.colon ? "on" : "off"));
-            device.send("clock.switch.colon", (prefs.colon ? 1 : 0));
+            device.send("clock.switch.colon", prefs.colon);
         }
 
         // Check for set light message
@@ -568,7 +570,7 @@ api.post("/settings", function(context) {
 
             if (server.save(prefs) > 0) server.error("Could not save display light setting");
             if (debug) server.log("Clock display turned " + (prefs.on ? "on" : "off"));
-            device.send("clock.set.light", (prefs.on ? 1 : 0));
+            device.send("clock.set.light", prefs.on);
         }
 
         if ("setutc" in data) {
@@ -578,9 +580,8 @@ api.post("/settings", function(context) {
             } else if (data.setutc == "1") {
                 prefs.utc = true;
                 if ("utcval" in data) {
-                    server.log(data.utcval);
-                    prefs.offset = data.utcval.tointeger();
-                    device.send("clock.set.utc", data.utcval);
+                    prefs.offset = data.utcval.tointeger() - 12;
+                    device.send("clock.set.utc", prefs.offset);
                 }
             } else {
                 if (debug) server.error("Attempt to pass an mis-formed parameter to setutc");

@@ -40,18 +40,16 @@ local alarmFlag = 0;
 function setDisplay() {
     // Controls the display
 
+    // Not showing the LED? bail
+    // NOTE if settings.on == false, the display will already be powered down
+    if (!settings.on) return;
+
     // Set the digit counters a and b
     local a = hours;
     local b = 0;
 
     // Zero the display buffer
     display.clearBuffer().setColon(false);
-
-    // Not showing the LED? Update an empty screen and bail
-    if (!settings.on) {
-        display.updateDisplay();
-        return;
-    }
 
     // Hours
     if (settings.hrmode == true) {
@@ -122,6 +120,7 @@ function setDisplay() {
 }
 
 function syncText() {
+    // Display 'SYNC' after the clock is powered up and until it receives its preferences from the agent
     local letters = [0x6D, 0x6E, 0x00, 0x37, 0x39];
     foreach (index, char in letters) display.writeGlyph(index, char, false);
     display.updateDisplay();
@@ -142,7 +141,7 @@ function clockTick() {
 
     // Update the value of 'hours' to reflect displayed time
     if (settings.utc) {
-        // If UTC is set, add the international time offset
+        // If UTC is set, add the international time offset (-12 TO +12)
         hours = hours + settings.offset;
         if (hours > 24) {
             hours = hours - 24;
@@ -216,23 +215,27 @@ function checkAlarms() {
 
 function switchMode(value) {
     // This function is called when 12/24 modes are switched by app
-    if (debug) server.log("Setting 24-hour mode " + ((value == 24) ? "on" : "off"));
-    settings.hrmode = (value == 24) ? true : false;
+    // 'value' is passed in from the agent as a bool
+    if (debug) server.log("Setting 24-hour mode " + (value ? "on" : "off"));
+    settings.hrmode = value;
 }
 
 function setBST(value) {
     // This function is called when the app sets or unsets BST
-    if (debug) server.log("Setting BST monitoring" + ((value == 1) ? "on" : "off"));
-    settings.bst = (value == 1);
+    // 'value' is passed in from the agent as a bool
+    if (debug) server.log("Setting BST monitoring" + (value ? "on" : "off"));
+    settings.bst = value;
 }
 
-function setUTC(string) {
+function setUTC(value) {
     // This function is called when the app sets or unsets UTC
-    if (string == "N") {
+    if (value == "N") {
+        // If 'value' is a string - and specifically "N" - it means 'disable UTC'
         settings.utc = false;
     } else {
+        // 'value' is the integer offset: -12 to 12
         settings.utc = true;
-        settings.offset = string.tointeger() - 12;
+        settings.offset = value;
     }
 }
 
@@ -240,9 +243,9 @@ function setUTC(string) {
 
 function setBright(brightness) {
     // This function is called when the app changes the clock's brightness
-    local bright = brightness.tointeger();
-    if (bright < 0 || bright > 15 || bright == settings.brightness) return;
-    if (bright == 0 && settings.on) {
+    // 'brightness' is passed in from the agent as an integer
+    if (brightness < 0 || brightness > 15 || brightness == settings.brightness) return;
+    if (brightness == 0 && settings.on) {
         // Disable the display
         settings.on = false;
         display.powerDown();
@@ -250,27 +253,32 @@ function setBright(brightness) {
     }
 
     // Update the setting and the display itself
-    settings.brightness = bright;
-    display.setBrightness(bright);
+    settings.brightness = brightness;
+    display.setBrightness(brightness);
 }
 
 function setFlash(value) {
     // This function is called when the app sets or unsets the colon flash
-    if (debug) server.log("Setting colon flash " + ((value == 1) ? "on" : "off"));
-    settings.flash = (value == 1);
+    // 'value' is passed in from the agent as a bool
+    if (debug) server.log("Setting colon flash " + (value ? "on" : "off"));
+    settings.flash = value;
 }
 
 function setColon(value) {
-    if (debug) server.log("Setting colon state " + ((value == 1) ? "on" : "off"));
-    settings.colon = (value == 1);
+    // This function is called when the app sets or unsets the colon
+    // 'value' is passed in from the agent as a bool
+    if (debug) server.log("Setting colon state " + (value ? "on" : "off"));
+    settings.colon = value;
 }
 
 function setLight(value) {
-    if (debug) server.log("Setting light " + ((value == 1) ? "on" : "off"));
-    if (value == 1 && !settings.on) {
+    // This function is called when the app turns the display on or off
+    // 'value' is passed in from the agent as a bool
+    if (debug) server.log("Setting light " + (value ? "on" : "off"));
+    if (value && !settings.on) {
         settings.on = true;
         display.powerUp();
-    } else if (value == 0 && settings.on) {
+    } else if (!value && settings.on) {
         settings.on = false;
         display.powerDown();
     }
@@ -292,7 +300,7 @@ function setPrefs(prefsTable) {
     settings.flash = prefsTable.flash;
     settings.colon = prefsTable.colon;
     settings.utc = prefsTable.utc;
-    settings.offset = prefsTable.offset - 12;
+    settings.offset = prefsTable.offset;
     settings.brightness = prefsTable.brightness;
     settings.on = prefsTable.on;
 
@@ -302,6 +310,7 @@ function setPrefs(prefsTable) {
     // Start the clock
     if (tickTimer == null) clockTick();
 
+    // Clear the local list of alarms
     if (alarms != null) alarms = null;
     alarms = prefsTable.alarms;
 }
@@ -349,6 +358,7 @@ server.onunexpecteddisconnect(disHandler);
 // Configure the display
 hardware.i2c12.configure(CLOCK_SPEED_400_KHZ);
 display = HT16K33Segment(hardware.i2c12, 0x70, debug);
+display.init();
 
 // Display the inital text, 'sync'
 syncText();
@@ -362,7 +372,7 @@ settings.flash <- true;
 settings.colon <- true;
 settings.on <- true;
 settings.brightness <- 15;
-settings.offset <- 12;
+settings.offset <- 0;
 settings.alarms <- [];
 
 // Set up Agent notification response triggers
