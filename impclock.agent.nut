@@ -414,6 +414,7 @@ function resetToDefaults() {
 	prefs.flash = true;
 	prefs.brightness = 15;
 	prefs.on = true;
+	prefs.debug = false;
 	prefs.alarms = [];
 	debug = false;
 
@@ -446,6 +447,7 @@ prefs.flash <- true;
 prefs.colon <- true;
 prefs.brightness <- 15;
 prefs.on <- true;
+prefs.debug <- debug;
 
 // Load in the server-saved preferences table
 local savedPrefs = server.load();
@@ -453,6 +455,15 @@ local savedPrefs = server.load();
 if (savedPrefs.len() != 0) {
     // Table is NOT empty so set 'prefs' to the loaded table
     prefs = savedPrefs;
+
+    if !("debug" in prefs) {
+        // No debug key in prefs, so add it
+        prefs.debug <- debug;
+        server.save(prefs);
+    } else {
+        debug = prefs.debug;
+    }
+
     if (debug) server.log("Clock settings loaded: " + appResponse());
 }
 
@@ -627,6 +638,8 @@ api.post("/action", function(context) {
             if (data.action == "debug") {
                 // A DEBUG message sent
                 debug = (data.debug == "1") ? true : false;
+                prefs.debug = debug;
+                if (server.save(prefs) > 0) server.error("Could not save debug setting");
                 device.send("clock.set.debug", debug);
                 server.log("Debug mode " + (debug ? "on" : "off"));
             }

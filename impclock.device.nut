@@ -312,6 +312,9 @@ function setPrefs(prefsTable) {
     settings.brightness = prefsTable.brightness;
     settings.on = prefsTable.on;
 
+    // Set the debug state
+    if ("debug" in prefsTable) setDebug(prefsTable.debug);
+
     // Set the brightness
     display.setBrightness(settings.brightness);
 
