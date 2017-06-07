@@ -39,7 +39,7 @@ local discTime = -1;
 local tickFlag = true;
 local pmFlag = false;
 local discFlag = false;
-local debug = false;
+local debug = true;
 local alarmFlag = 0;
 
 // DISPLAY FUNCTIONS
@@ -253,14 +253,7 @@ function setBright(brightness) {
     // This function is called when the app changes the clock's brightness
     // 'brightness' is passed in from the agent as an integer
     if (brightness < 0 || brightness > 15 || brightness == settings.brightness) return;
-    if (brightness == 0 && settings.on) {
-        // Disable the display
-        settings.on = false;
-        display.powerDown();
-        return;
-    }
-
-    // Update the setting and the display itself
+    if (debug) server.log("Setting clock brightness " + brightness);
     settings.brightness = brightness;
     display.setBrightness(brightness);
 }
@@ -283,12 +276,13 @@ function setLight(value) {
     // This function is called when the app turns the display on or off
     // 'value' is passed in from the agent as a bool
     if (debug) server.log("Setting light " + (value ? "on" : "off"));
-    if (value && !settings.on) {
-        settings.on = true;
-        display.powerUp();
-    } else if (!value && settings.on) {
-        settings.on = false;
-        display.powerDown();
+    if (value != settings.on) {
+        settings.on = value;
+        if (value) {
+            display.powerUp();
+        } else {
+            display.powerDown();
+        }
     }
 }
 
@@ -303,20 +297,27 @@ function setAlarm(alarmTime) {
 
 function setPrefs(prefsTable) {
     // Parse the set-up data table provided by the agent
+    if (debug) server.log("Preferences received from agent");
+
+    // Set the debug state
+    if ("debug" in prefsTable) setDebug(prefsTable.debug);
+
     settings.hrmode = prefsTable.hrmode;
     settings.bst = prefsTable.bst;
     settings.flash = prefsTable.flash;
     settings.colon = prefsTable.colon;
     settings.utc = prefsTable.utc;
     settings.offset = prefsTable.offset;
-    settings.brightness = prefsTable.brightness;
-    settings.on = prefsTable.on;
 
-    // Set the debug state
-    if ("debug" in prefsTable) setDebug(prefsTable.debug);
+    // Set the display state
+    settings.on = prefsTable.on;
+    setLight(settings.on);
 
     // Set the brightness
-    display.setBrightness(settings.brightness);
+    if (settings.brightness != prefsTable.brightness) {
+        settings.brightness = prefsTable.brightness;
+        if (settings.on) display.setBrightness(prefsTable.brightness);
+    }
 
     // Start the clock
     if (tickTimer == null) clockTick();
@@ -376,7 +377,7 @@ server.onunexpecteddisconnect(discHandler);
 
 // Configure the display
 hardware.i2c12.configure(CLOCK_SPEED_400_KHZ);
-display = HT16K33Segment(hardware.i2c12, 0x70, debug);
+display = HT16K33Segment(hardware.i2c12, 0x70);
 display.init();
 
 // Display the inital text, 'sync'
@@ -434,4 +435,5 @@ agent.on("clock.stop.alarm", function(dummy) {
 });
 
 // Request preferences from server
-agent.send("clock.get.prefs", 1);
+agent.send("clock.get.prefs", true);
+if (debug) server.log("Requesting preferences from agent");
