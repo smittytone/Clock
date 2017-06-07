@@ -162,7 +162,7 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
                 document.getElementById('utc').checked = (s[5] == '1') ? true : false;
                 document.getElementById('debug').checked = (s[9] == '1') ? true : false;
                 var u = parseInt(s[6]);
-                $('.utc-status span').text(u);
+                $('.utc-status span').text(u - 12);
                 $('#utcs').val(u);
 
                 $('.onoff-button button').text((s[7] == '1') ? 'Turn off Display' : 'Turn on Display');
