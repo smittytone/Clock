@@ -370,6 +370,9 @@ function reconnect() {
     }
 }
 
+// Load in generic boot message code
+#include "../generic/bootmessage.nut"
+
 // START OF PROGRAM
 
 // Register the WiFi disconnection handler
