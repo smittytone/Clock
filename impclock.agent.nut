@@ -6,9 +6,6 @@
 
 // CONSTANTS
 
-const APP_NAME = "Clock";
-const APP_VERSION = "1.0";
-
 const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
 <html>
     <head>
@@ -23,57 +20,59 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
             .error-message {color: white}
             .showhide {cursor: pointer}
             body {background-color: #6BA6D7;}
-            p {color: white; font-family: Michroma; font-size:0.9em}
-            h2 {color: white; font-family: Michroma; font-weight:bold}
-            h4 {color: white; font-family: Michroma}
-            td {color: white; font-family: Michroma}
+            p {color: white; font-family: Michroma, sans-serif; font-size:0.9em}
+            h2 {color: white; font-family: Michroma, sans-serif; font-weight:bold}
+            h4 {color: white; font-family: Michroma, sans-serif}
+            td {color: white; font-family: Michroma, sans-serif}
             hr {border-color: white}
         </style>
     </head>
     <body>
         <div class='container' style='padding: 20px;'>
             <div style='border: 2px solid white'>
-                <h2 align='center'>cløck&trade;</h2>
+                <h2 align='center'>CLØCK</h2>
                 <p align='center'>Your Digital Clock</p>
-                <p align='center' class='clock-status'><i><span>This cløck is online</span></i></p>
-                <div class='controls' align='center'>
+                <p align='center' class='clock-status'><i><span>This cløck is online</span></i><br>&nbsp;</p>
+                <div class='settings-area' align='center'>
                     <table width='100%%'>
                         <tr>
                             <td width='20%%'>&nbsp;</td>
                             <td width='60%%'>
-                                <h4 align='center'>Settings</h4>
-                                <div class='mode-checkbox' style='color:white;font-family:Michroma'>
+                                <h4 align='center'>Time Settings</h4>
+                                <div class='mode-checkbox' style='color:white;font-family:Michroma, sans-serif'>
                                     <small><input type='checkbox' name='mode' id='mode' value='mode'> 24-Hour Mode (Switch off for AM/PM)</small>
                                 </div>
-                                <div class='mode-checkbox' style='color:white;font-family:Michroma'>
+                                <div class='mode-checkbox' style='color:white;font-family:Michroma, sans-serif'>
                                     <small><input type='checkbox' name='bst' id='bst' value='bst'> Apply Daylight Savings Time Automatically</small>
                                 </div>
-                                <div class='seconds-checkbox' style='color:white;font-family:Michroma'>
-                                    <small><input type='checkbox' name='seconds' id='seconds' value='seconds'> Show Seconds Indicator</small>
+                                <div class='utc-controls'>
+                                    <div class='utc-checkbox' style='color:white;font-family:Michroma, sans-serif'>
+                                        <small><input type='checkbox' name='utc' id='utc' value='utc'> Show World Time</small>
+                                    </div>
+                                    <br>
+                                    <div class='utc-slider'>
+                                        <input type='range' name='utcs' id='utcs' value='0' min='0' max='24'>
+                                        <table width='100%%'><tr><td width='30%%' align='left'><small>-12</small></td><td width='40%%' align='center'><small>0</small></td><td width='30%%' align='right'><small>+12</small></td></tr></table>
+                                        <p class='utc-status' align='right'>Offset from local time: <span></span> hours</p>
+                                    </div>
                                 </div>
-                                <div class='flash-checkbox' style='color:white;font-family:Michroma'>
-                                    <small><input type='checkbox' name='flash' id='flash' value='seconds'> Flash Seconds Indicator</small>
-                                </div>
+                                <hr>
+                                <h4 align='center'>Display Settings</h4>
                                 <div class='slider'>
                                     <p>&nbsp;<br>Brightness</p>
                                     <input type='range' name='brightness' id='brightness' value='15' min='1' max='15'>
                                     <table width='100%%'><tr><td width='50%%' align='left'><small>Low</small></td><td width='50%%' align='right'><small>High</small></td></tr></table>
                                     <p class='brightness-status' align='right'>Current: <span></span></p>
                                 </div>
+                                <div class='seconds-checkbox' style='color:white;font-family:Michroma, sans-serif'>
+                                    <small><input type='checkbox' name='seconds' id='seconds' value='seconds'> Show Seconds Indicator</small>
+                                </div>
+                                <div class='flash-checkbox' style='color:white;font-family:Michroma, sans-serif'>
+                                    <small><input type='checkbox' name='flash' id='flash' value='seconds'> Flash Seconds Indicator</small>
+                                </div>
+                                <br>
                                 <div class='onoff-button' align='center'>
                                     <button type='submit' id='onoff' style='height:32px;width:200px;color:dimGrey;weight:bold'>Turn off Display</button>
-                                </div>
-                                <hr>
-                                <div class='utc-controls'>
-                                    <h4 align='center'>World Time Settings</h4>
-                                    <div class='utc-checkbox' style='color:white;font-family:Michroma'>
-                                        <small><input type='checkbox' name='utc' id='utc' value='utc'> Show World Time</small>
-                                    </div>
-                                    <div class='utc-slider'>
-                                        <input type='range' name='utcs' id='utcs' value='0' min='0' max='24'>
-                                        <table width='100%%'><tr><td width='30%%' align='left'><small>-12</small></td><td width='40%%' align='center'><small>0</small></td><td width='30%%' align='right'><small>+12</small></td></tr></table>
-                                        <p class='utc-status' align='right'>Offset from local time: <span></span> hours</p>
-                                    </div>
                                 </div>
                                 <hr>
                                 <div class='advancedsettings'>
@@ -87,19 +86,19 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
                                         <div class='reset-button' align='center'>
                                             <button type='submit' id='reset' style='height:32px;width:200px;color:dimGrey;weight:bold'>Reset Cløck</button>
                                         </div>
-                                        <hr>
                                     </div>
                                 </div>
+                                <hr>
                             </td>
                             <td width='20%%'>&nbsp;</td>
                         </tr>
                     </table>
                 </div>
-                <p class='text-center'>&nbsp;<br><small>cløck copyright &copy; 2014-17 Black Pyramid (Time)</small><br>&nbsp;<br><a href='https://github.com/smittytone/clock'><img src='https://smittytone.github.io/images/rassilon.png' width='32' height='32'></a></p>
+                <p class='text-center'><small>CLØCK &copy; 2014-17 Black Pyramid (Time)</small><br>&nbsp;<br><a href='https://github.com/smittytone/clock'><img src='https://smittytone.github.io/images/rassilon.png' width='32' height='32'></a></p>
             </div>
         </div>
 
-        <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>
+        <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>
         <script>
             $('.advanced').hide();
 
@@ -129,11 +128,11 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
             slider.addEventListener('touchend', updateSlider);
             $('.brightness-status span').text(slider.value);
 
-            // Brightness Slider
+            // UTC Slider
             slider = document.getElementById('utcs');
             slider.addEventListener('mouseup', updateutc);
             slider.addEventListener('touchend', updateutc);
-            $('.utc-status span').text(slider.value);
+            $('.utc-status span').text(slider.value - 12);
 
             $('.showhide').click(function(){
                 $('.advanced').toggle();
@@ -164,6 +163,7 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
                 var u = parseInt(s[6]);
                 $('.utc-status span').text(u - 12);
                 $('#utcs').val(u);
+                console.log(u);
 
                 $('.onoff-button button').text((s[7] == '1') ? 'Turn off Display' : 'Turn on Display');
                 displayon = (s[7] == '1');
