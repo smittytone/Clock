@@ -47,7 +47,7 @@ local alarmFlag = 0;
 function setDisplay() {
     // The main function for updating the display
 
-    // Not showing the LED? bail
+    // Not supposed to be showing the LED? Then bail
     // NOTE if settings.on is false, the display will already be powered down
     if (!settings.on) return;
 
@@ -112,15 +112,7 @@ function setDisplay() {
     }
 
     // If the colon should appear - its on permanently or in a flash - set it
-    local colonState = false;
-
-    if (settings.colon) {
-        if (settings.flash) {
-            colonState = tickFlag;
-        } else {
-            colonState = true;
-        }
-    }
+    local colonState = settings.colon ? (settings.flash ? tickFlag : true) : false;
 
     // Update the screen with time and colon
     display.setColon(colonState).updateDisplay();
@@ -333,29 +325,32 @@ function discHandler(reason) {
     // Called if the server connection is broken or re-established
     if (reason != SERVER_CONNECTED) {
         // Server is not connected
-        if (discTime == -1) {
+        if (!discFlag) {
             // If we have no disconnection time recorded, set it now
             discTime = time();
             local now = date();
             discMessage = format("Went offline at %02d:%02d:%02d", now.hour, now.min, now.sec);
-        }
 
-        // Record that the clock is disconnected
-        discFlag = true;
+            // Record that the clock is disconnected
+            discFlag = true;
+        }
 
         // Set an attempt to reconnect in 'DIS_TIMEOUT' seconds
         imp.wakeup(DIS_TIMEOUT, reconnect);
     } else {
         // Server is connected
-        if (debug) {
-            server.log(discMessage);
-            server.log("Back online after " + ((time() - discTime) * 1000) + " seconds");
-        }
+        if (discFlag) {
+            if (debug) {
+                server.log(discMessage);
+                local t = time() - discTime;
+                server.log("Back online after " + (time() - discTime) + " seconds");
+            }
 
-        // Reset the disconnected flags and saved data
-        discTime = -1;
-        discFlag = false;
-        discMessage = null;
+            // Reset the disconnected flags and saved data
+            discTime = -1;
+            discFlag = false;
+            discMessage = null;
+        }
     }
 }
 
