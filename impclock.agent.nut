@@ -340,63 +340,44 @@ function sendPrefs() {
 function appResponse() {
     // Responds to the app's request for the clock's set-up data
     // Generates a string in the form:
-    //
-    //   1.1.1.1.01.1.01.1.d.1
-    //
+    //    1.1.1.1.01.1.01.1.d.1
     // for the values
-    //   0. mode
-    //   1. bst state
-    //   2. colon flash
-    //   3. colon state
-    //   4. brightness
-    //   5. utc state
-    //   6. utc offset (0-24 -> -12 to 12)
-    //   7. display state
-    //   8. connection status
-    //   9. debug status
+    //    0. mode
+    //    1. bst state
+    //    2. colon flash
+    //    3. colon state
+    //    4. brightness
+    //    5. utc state
+    //    6. utc offset (0-24 -> -12 to 12)
+    //    7. display state
+    //    8. connection status
+    //    9. debug status
     //
-    // UTC offset is the value for the app's UIPicker, ie. 0 to 24
+    // UTC offset is the value for the app's control, ie. 0 to 24
     // (mapping in device code to offset values of +12 to -12)
-    //
     // .d is ONLY added if the agent detects the device is not
     // connected when this method is called
 
-    // Add Mode as a 1-digit value
     local rs = "0.";
     if (prefs.hrmode == true) rs = "1.";
-
-    // Add BST status as a 1-digit value
     rs = rs + (prefs.bst ? "1." : "0.");
-
-    // Add colon flash status as a 1-digit value
     rs = rs + (prefs.flash ? "1." : "0.");
-
-    // Add colon state as a 1-digit value
     rs = rs + (prefs.colon ? "1." : "0.");
-
-    // Add brightness as a 1- or 2-digit value
     rs = rs + prefs.brightness.tostring() + ".";
-
-    // Add UTC status as a 1-digit value
     rs = rs + (prefs.utc ? "1." : "0.");
-
-    // Add UTC offset as a 1- or 2-digit value (0-24)
     local o = prefs.offset + 12;
     rs = rs + o.tostring() + ".";
-
-	// Add clock state as 1-digit value
-	rs = rs + (prefs.on ? "1." : "0.");
-
-    // Add d indicate disconnected, or c
+    rs = rs + (prefs.on ? "1." : "0.");
     rs = rs + (device.isconnected() ? "d." : "c.");
-
-    // Add debug info
     rs = rs + (debug ? "1" : "0");
-
     return rs;
 }
 
 function resetToDefaults() {
+	// Clear the prefs and re-save
+    // NOTE This is handy if we change the number of keys in prefs table
+	server.save({});
+
 	// Reset 'prefs' values to the defaults
 	prefs.hrmode = true;
 	prefs.bst = true;
@@ -410,36 +391,24 @@ function resetToDefaults() {
 	prefs.alarms = [];
 	debug = false;
 
-    // Clear the prefs and re-save
-    // NOTE This is handy if we change the number of keys in prefs table
-	server.save({});
-	server.save(prefs);
+    // Resave the prefs
+    server.save(prefs);
 }
 
 // START
 
 // Cache the clock preferences
-// The table is formatted thus:
-//    HRMODE: true/false for 24/12-hour view
-//    BST: true for observing BST, false for GMT
-//    UTC: true/false for UTC set/unset
-//    OFFSET: GMT offset (-12 to +12)
-//    BRIGHTNESS: 1 to 15 for boot-set LED brightness
-//    FLASH: true/false for colon flashing or static
-//    COLON: true/false for colon visible or not
-//    ON: true/false for LED lit
-//    ALARMS: array of times for the alarm
-
 prefs = {};
-prefs.hrmode <- true;
-prefs.bst <- true;
-prefs.utc <- false;
-prefs.offset <- 0;
-prefs.flash <- true;
-prefs.colon <- true;
-prefs.brightness <- 15;
-prefs.on <- true;
-prefs.debug <- debug;
+prefs.hrmode <- true;   // true/false for 24/12-hour view
+prefs.bst <- true;      // true for observing BST, false for GMT
+prefs.utc <- false;     // true/false for UTC set/unset
+prefs.offset <- 0;      // GMT offset (-12 to +12)
+prefs.flash <- true;    // true/false for colon flashing or static
+prefs.colon <- true;    // true/false for colon visible or not
+prefs.brightness <- 15; // 1 to 15 for boot-set LED brightness
+prefs.on <- true;       // true/false for whether the clock LED is lit
+prefs.debug <- debug;   // true/false for whether the clock is in debug mode
+prefs.alarms <- [];     // array of alarm times
 
 // Load in the server-saved preferences table
 local savedPrefs = server.load();
