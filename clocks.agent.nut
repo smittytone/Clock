@@ -1,7 +1,8 @@
 // Clock
 // Copyright 2014-17, Tony Smith
 
-// Import EI libraries...
+// IMPORTS
+
 #require "Rocky.class.nut:2.0.0"
 
 // CONSTANTS

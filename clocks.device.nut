@@ -1,8 +1,8 @@
 // Clock
 // Copyright 2014-17, Tony Smith
 
-// Import local libraries
-// NOTE If you're not using Squinter or an equivalent tool,
+// IMPORTS
+//NOTE If you're not using Squinter or an equivalent tool,
 // cut and paste the name library code over the following line
 #import "../HT16K33Segment/HT16K33Segment.class.nut"
 #import "../generic/utilities.nut"
@@ -363,10 +363,10 @@ function reconnect() {
     }
 }
 
-// Load in generic boot message code
-#include "../generic/bootmessage.nut"
-
 // START OF PROGRAM
+
+// Load in generic boot message code
+#import "../generic/bootmessage.nut"
 
 // Register the WiFi disconnection handler
 server.onunexpecteddisconnect(discHandler);
