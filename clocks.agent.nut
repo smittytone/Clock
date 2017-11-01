@@ -20,25 +20,36 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
             .center { margin-left: auto; margin-right: auto; margin-bottom: auto; margin-top: auto; }
             .error-message {color: white}
             .showhide {cursor: pointer}
+            .tabborder {width: 20%%}
+            .tabcontent {width: 60%%}
+            .uicontent {border: 2px solid white}
+            .container {padding: 20px}
             body {background-color: #6BA6D7;}
             p {color: white; font-family: Michroma, sans-serif; font-size:0.9em}
             h2 {color: white; font-family: Michroma, sans-serif; font-weight:bold}
             h4 {color: white; font-family: Michroma, sans-serif}
             td {color: white; font-family: Michroma, sans-serif}
             hr {border-color: white}
+
+            @media only screen and (max-width: 640px) {
+                .tabborder {width: 5%%}
+                .tabcontent {width: 90%%}
+                .container {padding: 5px}
+                .uicontent {border: 0px}
+            }
         </style>
     </head>
     <body>
-        <div class='container' style='padding: 20px;'>
-            <div style='border: 2px solid white'>
+        <div class='container'>
+            <div class='uicontent' align='center'>
                 <h2 align='center'>CLØCK</h2>
                 <p align='center'>Your Digital Clock</p>
                 <p align='center' class='clock-status'><i><span>This cløck is online</span></i><br>&nbsp;</p>
                 <div class='settings-area' align='center'>
                     <table width='100%%'>
                         <tr>
-                            <td width='20%%'>&nbsp;</td>
-                            <td width='60%%'>
+                            <td class='tabborder'>&nbsp;</td>
+                            <td class='tabcontent'>
                                 <h4 align='center'>Time Settings</h4>
                                 <div class='mode-checkbox' style='color:white;font-family:Michroma, sans-serif'>
                                     <small><input type='checkbox' name='mode' id='mode' value='mode'> 24-Hour Mode (Switch off for AM/PM)</small>
@@ -91,7 +102,7 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
                                 </div>
                                 <hr>
                             </td>
-                            <td width='20%%'>&nbsp;</td>
+                            <td class='tabborder'>&nbsp;</td>
                         </tr>
                     </table>
                 </div>
