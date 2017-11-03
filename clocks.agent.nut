@@ -604,8 +604,10 @@ api.post("/action", function(context) {
                 // A RESET message sent
                 resetToDefaults();
                 device.send("clock.set.prefs", prefs);
-                if (debug) server.log("Clock settings reset");
+                server.log("Clock settings reset");
                 if (server.save(prefs) != 0) server.error("Could not save clock settings after reset");
+                context.send(200, "Settings reset");
+                return
             }
 
             if (data.action == "debug") {
@@ -615,10 +617,12 @@ api.post("/action", function(context) {
                 if (server.save(prefs) > 0) server.error("Could not save debug setting");
                 device.send("clock.set.debug", debug);
                 server.log("Debug mode " + (debug ? "on" : "off"));
+                context.send(200, "OK");
+                return
             }
+        } else {
+            context.send(404, "Missing resource");
         }
-
-        context.send(200, "OK");
     } catch (err) {
         context.send(400, "Bad data posted");
         server.error(err);
