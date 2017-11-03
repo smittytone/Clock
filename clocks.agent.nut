@@ -380,7 +380,7 @@ function appResponse() {
     local o = prefs.offset + 12;
     rs = rs + o.tostring() + ".";
     rs = rs + (prefs.on ? "1." : "0.");
-    rs = rs + (device.isconnected() ? "d." : "c.");
+    rs = rs + (device.isconnected() ? "c." : "d.");
     rs = rs + (debug ? "1" : "0");
     return rs;
 }
