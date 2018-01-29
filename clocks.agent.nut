@@ -1,12 +1,10 @@
 // Clock
-// Copyright 2014-17, Tony Smith
+// Copyright 2014-18, Tony Smith
 
 // IMPORTS
-
-#require "Rocky.class.nut:2.0.0"
+#require "Rocky.class.nut:2.0.1"
 
 // CONSTANTS
-
 const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
 <html>
     <head>
@@ -337,13 +335,11 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
 </html>";
 
 // MAIN VARIABLES
-
 local prefs = null;
 local api = null;
 local debug = false;
 
 // FUNCTIONS
-
 function sendPrefs() {
     // The clock has requested the current settings data, so send it as a table
     device.send("clock.set.prefs", prefs);
@@ -408,7 +404,6 @@ function resetToDefaults() {
 }
 
 // START
-
 // Cache the clock preferences
 prefs = {};
 prefs.hrmode <- true;   // true/false for 24/12-hour view

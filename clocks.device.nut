@@ -1,9 +1,9 @@
 // Clock
-// Copyright 2014-17, Tony Smith
+// Copyright 2014-18, Tony Smith
 
 // IMPORTS
-//NOTE If you're not using Squinter or an equivalent tool,
-// cut and paste the name library code over the following line
+// NOTE If you're not using Squinter or an equivalent tool,
+// cut and paste the named library's code over the following line
 #import "../HT16K33Segment/HT16K33Segment.class.nut"
 #import "../generic/utilities.nut"
 
@@ -11,14 +11,12 @@
 server.setsendtimeoutpolicy(RETURN_ON_ERROR, WAIT_TIL_SENT, 10);
 
 // CONSTANTS
-
 const DIS_TIMEOUT = 60.0;
 const TICK_TIME = 0.5;
 const TICK_TOTAL = 4;
 const HALF_TICK_TOTAL = 2;
 
 // MAIN VARIABLES
-
 // Objects
 local display = null;
 local discMessage = null;
@@ -41,7 +39,6 @@ local debug = true;
 local alarmFlag = 0;
 
 // DISPLAY FUNCTIONS
-
 function setDisplay() {
     // The main function for updating the display
 
@@ -212,7 +209,6 @@ function checkAlarms() {
 }
 
 // PREFERENCES-RELATED FUNCTIONS
-
 function switchMode(value) {
     // This function is called when 12/24 modes are switched by app
     // 'value' is passed in from the agent as a bool
@@ -318,7 +314,6 @@ function setPrefs(prefsTable) {
 }
 
 // DISCONNECTION/CONNECTION FUNCTIONS
-
 function discHandler(reason) {
     // Called if the server connection is broken or re-established
     if (reason != SERVER_CONNECTED) {
@@ -364,7 +359,6 @@ function reconnect() {
 }
 
 // START OF PROGRAM
-
 // Load in generic boot message code
 #import "../generic/bootmessage.nut"
 
