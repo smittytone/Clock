@@ -456,6 +456,13 @@ api.get("/state", function(context) {
     context.send(200, a);
 });
 
+api.get("/info", function(context) {
+    local info = {};
+    info.app <- "B14E7692-6D05-4AC6-B66A-AB40C98E3D5B";
+    info.watchsupported <- "false";
+    context.send(200, http.jsonencode(info));
+});
+
 api.get("/settings", function(context) {
     // A GET request made to /settings, so return the clock settings
     context.send(200, appResponse());
