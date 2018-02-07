@@ -1,16 +1,16 @@
-# cløck 1.1
+# cløck 1.2
 
-A very simple four-digit timepiece developed using the [Electric Imp Platform](https://electricimp.com/docs/). It makes use of the [Adafruit 0.56-inch 4-digit, 7-segment LED display](http://www.adafruit.com/products/878), which is based on the Holtek HT16K33 controller.
+A very simple four-digit timepiece developed using the [Electric Imp Platform](https://electricimp.com). It makes use of the [Adafruit 0.56-inch 4-digit, 7-segment LED display](http://www.adafruit.com/products/878), which is based on the Holtek HT16K33 controller.
 
 ## Hardware
 
 ### Ingredients
 
-- 1x [Electric Imp Developer Kit](https://electricimp.com/docs/gettingstarted/devkits/)
+- 1x [Electric Imp Developer Kit](https://developer.electricimp.com/gettingstarted/devkits)
 - 1x [Adafruit 1.2in 8x8 LED Matrix + I&sup2;C Backpack](https://www.adafruit.com/products/1856)
 - 4x short female-to-female connector wires
 
-![cløck](pic01.jpg)
+![cløck](images/pic01.jpg)
 
 ### Assembly
 
@@ -30,15 +30,15 @@ A very simple four-digit timepiece developed using the [Electric Imp Platform](h
 
 ### Setup
 
-1. Visit [Electric Imp](https://ide.electricimp.com/login/) to sign up for a free developer account. You will be asked to confirm your email address.
-2. Visit Electric Imp’s [Getting Started Guide](https://electricimp.com/docs/gettingstarted/blinkup/) to learn how to configure your imp001 to access your local WiFi network, and how to enter code into the IDE and run it on your device.
+1. Visit [Electric Imp impCentral](https://impcentral.electricimp.com/login/) to sign up for a free developer account. You will be asked to confirm your email address.
+2. Visit Electric Imp’s [Getting Started Guide](https://developer.electricimp.com/gettingstarted/blinkup) to learn how to configure your imp001 to access your local WiFi network, and how to enter code into the IDE and run it on your device.
 
 ## User Interface
 
 Visit your cløck’s agent URL for a control interface.
 
-![cløck UI](grab01.png)
+![cløck UI](images/grab01.png)
 
 ## Licence
 
-The cløck design and software is copyright &copy; 2014-17 Tony Smith and made available under the [MIT Licence](./LICENSE).
+The cløck design and software is copyright &copy; 2014-18 Tony Smith and made available under the [MIT Licence](./LICENSE).
