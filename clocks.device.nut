@@ -150,7 +150,7 @@ function clockTick() {
     } else {
         // We are displaying local time -
         // is daylight savings being observed?
-        if (settings.bst && utilities.bstCheck()) hours++;
+        if (settings.bst && Utilities.bstCheck()) hours++;
         if (hours > 23) hours = 0
     }
 

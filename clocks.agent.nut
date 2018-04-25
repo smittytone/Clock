@@ -104,7 +104,7 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
                         </tr>
                     </table>
                 </div>
-                <p class='text-center'><small>CLØCK &copy; 2014-17 Black Pyramid (Time)</small><br>&nbsp;<br><a href='https://github.com/smittytone/clock'><img src='https://smittytone.github.io/images/rassilon.png' width='32' height='32'></a></p>
+                <p class='text-center'><small>CLØCK &copy; 2014-18 Black Pyramid (Time)</small><br>&nbsp;<br><a href='https://github.com/smittytone/clock'><img src='https://smittytone.github.io/images/rassilon.png' width='32' height='32'></a></p>
             </div>
         </div>
 
@@ -454,6 +454,13 @@ api.get("/state", function(context) {
     // A GET request made to /state, so return clock's connection state
     local a = (device.isconnected() ? "c" : "d");
     context.send(200, a);
+});
+
+api.get("/info", function(context) {
+    local info = {};
+    info.app <- "B14E7692-6D05-4AC6-B66A-AB40C98E3D5B";
+    info.watchsupported <- "false";
+    context.send(200, http.jsonencode(info));
 });
 
 api.get("/settings", function(context) {
