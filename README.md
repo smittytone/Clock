@@ -1,10 +1,10 @@
-# cløck 1.2
+# cløck 1.2 #
 
 A very simple four-digit timepiece developed using the [Electric Imp Platform](https://electricimp.com). It makes use of the [Adafruit 0.56-inch 4-digit, 7-segment LED display](http://www.adafruit.com/products/878), which is based on the Holtek HT16K33 controller.
 
-## Hardware
+## Hardware ##
 
-### Ingredients
+### Ingredients ###
 
 - 1x [Electric Imp Developer Kit](https://developer.electricimp.com/gettingstarted/devkits)
 - 1x [Adafruit 1.2in 8x8 LED Matrix + I&sup2;C Backpack](https://www.adafruit.com/products/1856)
@@ -12,7 +12,7 @@ A very simple four-digit timepiece developed using the [Electric Imp Platform](h
 
 ![cløck](images/pic01.jpg)
 
-### Assembly
+### Assembly ###
 
 1. Assemble the Adafruit display and backpack
 1. Solder connector pins to the Electric Imp April breakout board.
@@ -26,19 +26,19 @@ A very simple four-digit timepiece developed using the [Electric Imp Platform](h
 | Pin1 | SCL |
 | Pin2 | SDA |
 
-## Software
+## Software ##
 
-### Setup
+### Setup ###
 
 1. Visit [Electric Imp impCentral](https://impcentral.electricimp.com/login/) to sign up for a free developer account. You will be asked to confirm your email address.
 2. Visit Electric Imp’s [Getting Started Guide](https://developer.electricimp.com/gettingstarted/blinkup) to learn how to configure your imp001 to access your local WiFi network, and how to enter code into the IDE and run it on your device.
 
-## User Interface
+## User Interface ##
 
 Visit your cløck’s agent URL for a control interface.
 
 ![cløck UI](images/grab01.png)
 
-## Licence
+## Licence ##
 
 The cløck design and software is copyright &copy; 2014-18 Tony Smith and made available under the [MIT Licence](./LICENSE).
