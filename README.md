@@ -1,4 +1,4 @@
-# cløck 1.3 #
+# cløck 1.4 #
 
 A very simple four-digit timepiece developed using the [Electric Imp Platform](https://electricimp.com). It makes use of the [Adafruit 0.56-inch 4-digit, 7-segment LED display](http://www.adafruit.com/products/878), which is based on the Holtek HT16K33 controller.
 
@@ -41,9 +41,11 @@ Visit your cløck’s agent URL for a control interface.
 
 ## Release Notes ##
 
-### 1.3 ###
-
-- Minor changes and bug fixes
+- 1.4
+    - Add [DisconnectionManager](https://github.com/smittytone/generic/blob/master/disconnect.nut) support
+    - Upgrade [Rocky](https://developer.electricimp.com/libraries/utilities/rocky) to 2.0.1
+- 1.3
+    - Minor changes and bug fixes
 
 ## Licence ##
 
