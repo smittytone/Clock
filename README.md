@@ -48,6 +48,7 @@ Visit your cløck’s agent URL for a control interface.
     - Add [DisconnectionManager](https://github.com/smittytone/generic/blob/master/disconnect.nut) support
     - Upgrade [Rocky](https://developer.electricimp.com/libraries/utilities/rocky) to 2.0.1
     - Update to [JQuery 3.3.1](https://jquery.com)
+    - Prevent Ajax XHR cacheing
 - 1.3
     - Minor changes and bug fixes.
 

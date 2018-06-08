@@ -1,5 +1,5 @@
-<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
-<html>
+<!DOCTYPE html>
+<html lang='en'>
 <head>
   <title>cløck</title>
   <link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css'>
@@ -7,6 +7,7 @@
   <link rel='apple-touch-icon' href='https://smittytone.github.io/images/ati-clock.png'>
   <link rel='shortcut icon' href='https://smittytone.github.io/images/ico-clock.ico' />
   <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+  <meta charset='UTF-8'>
   <style>
     .center { margin-left: auto; margin-right: auto; margin-bottom: auto; margin-top: auto; }
     .error-message {color: white}
@@ -33,9 +34,9 @@
 <body>
   <div class='container'>
     <div class='uicontent' align='center'>
-          <h2 align='center'>CLØCK</h2>
-          <p align='center'>Your Digital Clock</p>
-          <p align='center' class='clock-status'><i><span>This cløck is online</span></i><br>&nbsp;</p>
+      <h2 align='center'>CLØCK</h2>
+      <p class='text-center'>Your Digital Clock</p>
+      <p class='text-center clock-status'><i><span>This cløck is online</span></i><br>&nbsp;</p>
           <div class='settings-area' align='center'>
               <table width='100%%'>
                   <tr>
@@ -206,7 +207,8 @@
           if (error) {
             $('.clock-status span').text(error);
           }
-        }
+        },
+        cache: false
       });
     }
 
@@ -222,7 +224,8 @@
           if (error) {
             $('.clock-status span').text(error);
           }
-        }
+        },
+        cache: false
       });
     }
 
@@ -276,7 +279,8 @@
           if (error) {
             $('.clock-status span').text(error);
           }
-        }
+        },
+        cache: false
       });
     }
 
@@ -288,7 +292,8 @@
         data: JSON.stringify({ 'action' : 'reset' }),
         success : function(response) {
           getState(updateReadout);
-        }
+        },
+        cache: false
       });
     }
 
@@ -303,7 +308,8 @@
           if (error) {
             $('.clock-status span').text(error);
           }
-        }
+        },
+        cache: false
       });
     }
 
@@ -320,7 +326,8 @@
           if (error) {
             $('.clock-status span').text(error);
           }
-        }
+        },
+        cache: false
       });
     }
   </script>
