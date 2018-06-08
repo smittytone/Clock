@@ -15,6 +15,7 @@ const TICK_TIME = 0.5;
 const TICK_TOTAL = 4;
 const HALF_TICK_TOTAL = 2;
 
+
 // MAIN VARIABLES
 // Objects
 local display = null;

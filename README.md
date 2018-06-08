@@ -42,10 +42,14 @@ Visit your cløck’s agent URL for a control interface.
 ## Release Notes ##
 
 - 1.4
+    - Update to [Bootstrap 4.1.1](https://getbootstrap.com/)
+        - Update Web UI based on Bootstrap
+        - Separate out Web UI into own file for clarity
     - Add [DisconnectionManager](https://github.com/smittytone/generic/blob/master/disconnect.nut) support
     - Upgrade [Rocky](https://developer.electricimp.com/libraries/utilities/rocky) to 2.0.1
+    - Update to [JQuery 3.3.1](https://jquery.com)
 - 1.3
-    - Minor changes and bug fixes
+    - Minor changes and bug fixes.
 
 ## Licence ##
 
