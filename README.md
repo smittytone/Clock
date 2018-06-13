@@ -41,7 +41,7 @@ Visit your cløck’s agent URL for a control interface.
 
 ## Release Notes ##
 
-- 1.4 *June 8, 2018*
+- 1.4 *June 13, 2018*
     - Update to [Bootstrap 4.1.1](https://getbootstrap.com/)
         - Update Web UI based on Bootstrap
         - Separate out Web UI into own file for clarity
