@@ -36,10 +36,9 @@
     p.colophon {text-align: center; margin-top: 16px; font-size:0.8em; font-family: Rubik, sans-serif;}
     p.subhead {font-size:1.0em;}
     p.subslider {font-size:0.8em;}
-    td {color: white; font-family: Michroma, sans-serif; font-size:0.8em;}
-    h2 {color: white; font-family: Michroma, sans-serif; font-weight:bold; margin-top:10px;}
-    h5 {color: white; font-family: Michroma, sans-serif;}
-    h4 {color: white; font-family: Michroma, sans-serif; margin-bottom:20px;}
+    h2 {color: white; font-family: Michroma, sans-serif; font-weight:bold; margin-top:12px;}
+    h5 {color: white; font-family: Michroma, sans-serif; font-size:1.0em;}
+    h4 {color: white; font-family: Michroma, sans-serif; margin-bottom:20px; margin-top:28px;}
     hr {border-color: white;}
 
     @media only screen and (max-width: 640px) {
@@ -57,8 +56,8 @@
       <div class='row' align='center'>
         <div class='col'>
           <h2>CLØCK</h2>
-          <h5 class='text-center'>Your Digital Clock<br>&nbsp;</h5>
-          <h5 class='text-center clock-status'><i><span>This cløck is online</span></i><br>&nbsp;</h5>
+          <h5>Your Digital Clock<br>&nbsp;</h5>
+          <h5 class='clock-status'><i><span>This cløck is online</span></i></h5>
         </div>
       </div>
       <!-- Settings and Controls Row -->
@@ -72,7 +71,6 @@
           <label class='checkarea'> Apply Daylight Savings Time Automatically
             <input type='checkbox' name='bst' id='bst' value='bst'><span class='checkmark'></span>
           </label>
-          <p>&nbsp;</p>
           <p class='subhead text-center'>World Time</p>
           <label class='checkarea utc-checkbox'> Show World Time
             <input type='checkbox' name='utc' id='utc' value='utc'><span class='checkmark'></span>
@@ -84,7 +82,6 @@
             <td width='30%%' align='right'><small>+12</small></td>
           </tr></table>
           <p class='utc-status subslider' align='right'>Offset from local time: <span></span> hours</p>
-          <hr>
           <h4 align='center'>Display Settings</h4>
           <label class='checkarea'> Show Seconds Indicator
             <input type='checkbox' name='seconds' id='seconds' value='seconds'><span class='checkmark'></span>
@@ -92,19 +89,17 @@
           <label class='checkarea'> Flash Seconds Indicator
             <input type='checkbox' name='flash' id='flash' value='seconds'><span class='checkmark'></span>
           </label>
-          &nbsp;
-          <p class='subhead text-center'>Display Brightness</p>
+          <p class='subhead text-center'>Brightness</p>
           <input type='range' class='slider' name='brightness' id='brightness' value='15' min='1' max='15'>
           <table width='100%%'><tr>
             <td width='50%%' align='left'><small>Low</small></td>
             <td width='50%%' align='right'><small>High</small></td>
           </tr></table>
-          <p class='brightness-status subslider' align='right'>Current: <span></span></p>
-          &nbsp;
+          <p class='brightness-status subslider' align='right'>Current brightness: <span></span><br>&nbsp;</p>
           <div class='onoff-button' align='center'>
             <button class='btn btn-light' type='submit' id='onoff' style='width:200px'>Turn Display Off</button>
           </div>
-          &nbsp;
+          <p>&nbsp;</p>
           <div class='advancedsettings' style='background-color:#cccccc'>
             <p class='showhide text-center' style='line-height:36px;color:black;'>Advanced Settings</p>
             <div class='advanced' align='center'>
