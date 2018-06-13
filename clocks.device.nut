@@ -6,20 +6,19 @@
 // cut and paste the named library's code over the following line
 #import "../HT16K33Segment/HT16K33Segment.class.nut"
 #import "../generic/utilities.nut"
+#import "../generic/bootmessage.nut"
+#import "../generic/disconnect.nut"
 
-// Set up WiFi disconnection response policy right at the start
-server.setsendtimeoutpolicy(RETURN_ON_ERROR, WAIT_TIL_SENT, 10);
 
 // CONSTANTS
-const DIS_TIMEOUT = 60.0;
 const TICK_TIME = 0.5;
 const TICK_TOTAL = 4;
 const HALF_TICK_TOTAL = 2;
 
+
 // MAIN VARIABLES
 // Objects
 local display = null;
-local discMessage = null;
 local tickTimer = null;
 local settings = null;
 local alarms = [];
@@ -29,7 +28,6 @@ local hours = 0;
 local minutes = 0;
 local seconds = 0;
 local tickCount = 0;
-local discTime = -1;
 
 // Runtime flags
 local tickFlag = true;
@@ -37,6 +35,7 @@ local pmFlag = false;
 local discFlag = false;
 local debug = true;
 local alarmFlag = 0;
+
 
 // DISPLAY FUNCTIONS
 function setDisplay() {
@@ -125,8 +124,8 @@ function syncText() {
     display.updateDisplay();
 }
 
-// CLOCK FUNCTIONS
 
+// CLOCK FUNCTIONS
 function clockTick() {
     // Set a trigger for the next tick. We do this so that the time taken
     // to run the clock_tick code to minimise the drift
@@ -150,7 +149,7 @@ function clockTick() {
     } else {
         // We are displaying local time -
         // is daylight savings being observed?
-        if (settings.bst && Utilities.bstCheck()) hours++;
+        if (settings.bst && utilities.bstCheck()) hours++;
         if (hours > 23) hours = 0
     }
 
@@ -207,6 +206,7 @@ function checkAlarms() {
         }
     }
 }
+
 
 // PREFERENCES-RELATED FUNCTIONS
 function switchMode(value) {
@@ -313,57 +313,23 @@ function setPrefs(prefsTable) {
     alarms = prefsTable.alarms;
 }
 
-// DISCONNECTION/CONNECTION FUNCTIONS
-function discHandler(reason) {
-    // Called if the server connection is broken or re-established
-    if (reason != SERVER_CONNECTED) {
-        // Server is not connected
-        if (!discFlag) {
-            // If we have no disconnection time recorded, set it now
-            discTime = time();
-            local now = date();
-            discMessage = format("Went offline at %02d:%02d:%02d", now.hour, now.min, now.sec);
 
-            // Record that the clock is disconnected
-            discFlag = true;
-        }
+// CONNECTIVITY FUNCTIONS
+// Set up connectivity policy — this should come as early in the code as possible
+function discHandler(event) {
+    if ("message" in event) server.log(event.message);
 
-        // Set an attempt to reconnect in 'DIS_TIMEOUT' seconds
-        imp.wakeup(DIS_TIMEOUT, reconnect);
-    } else {
-        // Server is connected
-        if (discFlag) {
-            if (debug) {
-                server.log(discMessage);
-                local t = time() - discTime;
-                server.log("Back online after " + (time() - discTime) + " seconds");
-            }
-
-            // Reset the disconnected flags and saved data
-            discTime = -1;
-            discFlag = false;
-            discMessage = null;
-        }
+    if ("type" in event) {
+        discFlag = (event.type == "connected") ? false : true;
     }
 }
 
-function reconnect() {
-    // Called when necessary in order to attempt to reconnect to the server
-    if (server.isconnected()) {
-       // Is the clock already connected? If so trigger the 'connected' flow via 'discHandler()'
-       discHandler(SERVER_CONNECTED);
-    } else {
-        // The clock is still disconnected, so attempt to connect
-        server.connect(discHandler, 30);
-    }
-}
 
 // START OF PROGRAM
-// Load in generic boot message code
-#import "../generic/bootmessage.nut"
 
 // Register the WiFi disconnection handler
-server.onunexpecteddisconnect(discHandler);
+disconnectionManager.eventCallback = discHandler;
+disconnectionManager.start();
 
 // Configure the display
 hardware.i2c12.configure(CLOCK_SPEED_400_KHZ);
