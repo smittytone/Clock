@@ -1,4 +1,4 @@
-# cløck 1.4 #
+# cløck 1.5 #
 
 A very simple four-digit timepiece developed using the [Electric Imp Platform](https://electricimp.com). It makes use of the [Adafruit 0.56-inch 4-digit, 7-segment LED display](http://www.adafruit.com/products/878), which is based on the Holtek HT16K33 controller.
 
@@ -41,6 +41,8 @@ Visit your cløck’s agent URL for a control interface.
 
 ## Release Notes ##
 
+- 1.5 *done*
+    - Fix CSS bugs
 - 1.4 *June 13, 2018*
     - Update to [Bootstrap 4.1.1](https://getbootstrap.com/)
         - Update Web UI based on Bootstrap
