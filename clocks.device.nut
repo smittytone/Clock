@@ -318,10 +318,7 @@ function setPrefs(prefsTable) {
 // Set up connectivity policy — this should come as early in the code as possible
 function discHandler(event) {
     if ("message" in event) server.log(event.message);
-
-    if ("type" in event) {
-        discFlag = (event.type == "connected") ? false : true;
-    }
+    if ("type" in event) discFlag = (event.type == "connected") ? false : true;
 }
 
 
