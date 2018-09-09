@@ -7,6 +7,7 @@
 // CONSTANTS
 // If you are NOT using Squinter or a similar tool, replace the #import statement below
 // with the contents of the named file (clock_ui.html)
+const APP_CODE = "B14E7692-6D05-4AC6-B66A-AB40C98E3D5B";
 const HTML_STRING = @"
 #import "clock_ui.html"
 ";
@@ -307,4 +308,17 @@ api.post("/action", function(context) {
         server.error(err);
         return;
     }
+});
+
+// GET at /controller/info returns app info for Controller
+api.get("/controller/info", function(context) {
+    local info = { "appcode": APP_CODE,
+                   "watchsupported": "false" };  // False for now until Controller updated
+    context.send(200, http.jsonencode(info));
+});
+
+// GET call to /controller/state returns device status
+api.get("/controller/state", function(context) {
+    // Send to the settings in internal format
+    context.send(200, appResponse());
 });
