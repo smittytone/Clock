@@ -58,7 +58,7 @@ function setDisplay() {
         // NOTE The first digit's decimal point is set if the clock is disconnected
         // ie. if 'discFlag' is true
         if (a < 10) {
-            display.writeNumber(0, 16, discFlag);
+            display.writeNumber(0, 0, discFlag);
             display.writeNumber(1, a, false);
         } else if (a > 9 && a < 20) {
             display.writeNumber(0, 1, discFlag)
