@@ -8,6 +8,7 @@
 // If you are NOT using Squinter or a similar tool, replace the #import statement below
 // with the contents of the named file (clock_ui.html)
 const APP_CODE = "B14E7692-6D05-4AC6-B66A-AB40C98E3D5B";
+const MAX_ALARMS = 8;
 const HTML_STRING = @"
 #import "clock_ui.html"
 ";
@@ -16,6 +17,7 @@ const HTML_STRING = @"
 local prefs = null;
 local api = null;
 local debug = false;
+local alarms = [];
 
 // FUNCTIONS
 function sendPrefs() {
@@ -132,13 +134,6 @@ api.get("/state", function(context) {
     // A GET request made to /state, so return clock's connection state
     local a = (device.isconnected() ? "c" : "d");
     context.send(200, a);
-});
-
-api.get("/info", function(context) {
-    local info = {};
-    info.app <- "B14E7692-6D05-4AC6-B66A-AB40C98E3D5B";
-    info.watchsupported <- "false";
-    context.send(200, http.jsonencode(info));
 });
 
 api.get("/settings", function(context) {
@@ -298,7 +293,7 @@ api.post("/action", function(context) {
                 device.send("clock.set.debug", debug);
                 server.log("Debug mode " + (debug ? "on" : "off"));
                 context.send(200, "OK");
-                return
+                return;
             }
         } else {
             context.send(404, "Missing resource");
@@ -307,6 +302,52 @@ api.post("/action", function(context) {
         context.send(400, "Bad data posted");
         server.error(err);
         return;
+    }
+});
+
+api.get("/alarms", function(context) {
+    // A GET request made to /alarms requesting a list of alarms
+    local alarmList = {};
+    alarmList.alarms <- [];
+    
+    if (alarms.len() > 0) {
+        foreach (alarm in alarms) {
+            local a = {};
+            a.hour <- alarm.hour.tostring();
+            a.minute <- alarm.mins.tostring();
+            a.repeat <- alarm.repeat;
+            alarmList.alarms.append(a);
+        }
+    }
+
+    context.send(200, http.jsonencode(alarmList));
+});
+
+api.post("/alarms", function(context) {
+    // A POST request made to /alarms setting an alarm
+    if (alarms.len() == MAX_ALARMS) {
+        context.send(400, "Maximum number of alarms exceeded");
+        return;
+    }
+
+    try {
+        local data = http.jsondecode(context.req.rawbody);
+
+        local alarm = {};
+        
+        if ("hour" in data) alarm.hour <- data.hour.tointeger();
+        if ("minute" in data) alarm.mins <- data.minute.tointeger();
+        if ("repeat" in data) alarm.repeat <- (data.repeat == "true" ? true : false);
+        
+        alarms.append(alarm);
+        device.send("clock.set.alarm", alarm);
+
+        if (debug) server.log("Alarm set for " + data.hour + ":" + data.minute + " (Repeat: " + (alarm.repeat ? "yes" : "no") + ")");
+
+        context.send(200, "Alarm set");
+    } catch (err) {
+        context.send(400, "Bad data posted");
+        server.error(err);
     }
 });
 

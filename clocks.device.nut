@@ -171,23 +171,23 @@ function checkAlarms() {
     // Do we need to display an alarm screen flash? **** EXPERIMENTAL ****
     if (alarms.len() > 0) {
         foreach (alarm in alarms) {
-            if (alarm.hours == hours && alarm.minutes == minutes) {
-                if (!("on" in alarm) && !alarm.done) {
+            if (alarm.hour == hours && alarm.mins == minutes) {
+                if (!alarm.on && !alarm.done) {
                     if (debug) server.log("Alarm triggered");
                     alarmFlag = 1;
-                    alarm.offminutes = alarm.minutes + 5;
-                    alarm.offhours = alarm.hours;
-                    if (alarm.offminutes > 59) {
-                        alarm.offminutes = 60 - alarm.offminutes;
-                        alarm.offhours++;
-                        if (alarm.offhours > 23) alarm.offhours = 24 - alarm.offhours;
+                    alarm.offmins = alarm.mins + 5;
+                    alarm.offhour = alarm.hour
+                    if (alarm.offmins > 59) {
+                        alarm.offmins = 60 - alarm.offmins;
+                        alarm.offhour++;
+                        if (alarm.offhour > 23) alarm.offhour = 24 - alarm.offhour;
                     }
 
-                    alarm.on <- true;
+                    alarm.on = true;
                 }
             }
 
-            if (alarm.offhours == hours && alarm.offminutes == minutes) {
+            if (alarm.offhour == hours && alarm.offmins == minutes) {
                 alarmFlag = -1;
                 if (debug) server.log("Alarm stopped");
                 if (!alarm.repeat) alarm.done = true;
@@ -204,6 +204,8 @@ function checkAlarms() {
                 i++;
             }
         }
+
+        //agent.send("update.alarms", alarms);
     }
 }
 
@@ -363,7 +365,7 @@ agent.on("clock.set.debug", setDebug);
 agent.on("clock.set.alarm", function(newAlarm) {
     if (alarms.len() > 0) {
         foreach (alarm in alarms) {
-            if (alarm.hours == newAlarm.hours && alarm.minutes == newAlarm.minutes) {
+            if (alarm.hour == newAlarm.hour && alarm.mins == newAlarm.mins) {
                 // Alarm matches an existing one - is the use just updating repeat?
                 if (alarm.repeat == newAlarm.repeat) return;
                 alarm.repeat = newAlarm.repeat;
@@ -371,8 +373,12 @@ agent.on("clock.set.alarm", function(newAlarm) {
         }
     }
 
+    newAlarm.on <- false;
+    newAlarm.done <- false;
+    newAlarm.offmins <- -1;
+    newAlarm.offhour <- -1;
     alarms.append(newAlarm);
-    if (debug) server.log("Alarm set");
+    if (debug) server.log("Alarm set (" + alarms.len() + ")");
 });
 
 agent.on("clock.stop.alarm", function(dummy) {
