@@ -122,6 +122,11 @@ device.on("clock.get.prefs", function(dummy) {
 	sendPrefs();
 });
 
+// Update the list of alarms
+device.on("update.alarms", function(new) {
+    alarms = new;
+});
+
 // Set up the web API
 api = Rocky();
 
@@ -332,18 +337,14 @@ api.post("/alarms", function(context) {
 
     try {
         local data = http.jsondecode(context.req.rawbody);
-
         local alarm = {};
         
         if ("hour" in data) alarm.hour <- data.hour.tointeger();
         if ("minute" in data) alarm.mins <- data.minute.tointeger();
         if ("repeat" in data) alarm.repeat <- (data.repeat == "true" ? true : false);
-        
-        alarms.append(alarm);
-        device.send("clock.set.alarm", alarm);
-
         if (debug) server.log("Alarm set for " + data.hour + ":" + data.minute + " (Repeat: " + (alarm.repeat ? "yes" : "no") + ")");
-
+        
+        device.send("clock.set.alarm", alarm);
         context.send(200, "Alarm set");
     } catch (err) {
         context.send(400, "Bad data posted");
@@ -351,15 +352,16 @@ api.post("/alarms", function(context) {
     }
 });
 
-// GET at /controller/info returns app info for Controller
+// Add Controller support endpoints
 api.get("/controller/info", function(context) {
+    // GET at /controller/info returns app info for Controller
     local info = { "appcode": APP_CODE,
                    "watchsupported": "false" };  // False for now until Controller updated
     context.send(200, http.jsonencode(info));
 });
 
-// GET call to /controller/state returns device status
 api.get("/controller/state", function(context) {
+    // GET call to /controller/state returns device status
     // Send to the settings in internal format
     context.send(200, appResponse());
 });

@@ -14,6 +14,7 @@
 const TICK_TIME = 0.5;
 const TICK_TOTAL = 4;
 const HALF_TICK_TOTAL = 2;
+const ALARM_DURATION = 2;
 
 
 // MAIN VARIABLES
@@ -175,7 +176,7 @@ function checkAlarms() {
                 if (!alarm.on && !alarm.done) {
                     if (debug) server.log("Alarm triggered");
                     alarmFlag = 1;
-                    alarm.offmins = alarm.mins + 5;
+                    alarm.offmins = alarm.mins + ALARM_DURATION;
                     alarm.offhour = alarm.hour
                     if (alarm.offmins > 59) {
                         alarm.offmins = 60 - alarm.offmins;
@@ -195,9 +196,11 @@ function checkAlarms() {
         }
 
         local i = 0;
+        local flag = false;
         while (i < alarms.len()) {
             local alarm = alarms[i];
             if (alarm.done == true) {
+                flag = true;
                 alarms.remove(i);
                 if (debug) server.log("Alarm deleted");
             } else {
@@ -205,7 +208,7 @@ function checkAlarms() {
             }
         }
 
-        //agent.send("update.alarms", alarms);
+        if (flag) agent.send("update.alarms", alarms);
     }
 }
 
@@ -379,6 +382,7 @@ agent.on("clock.set.alarm", function(newAlarm) {
     newAlarm.offhour <- -1;
     alarms.append(newAlarm);
     if (debug) server.log("Alarm set (" + alarms.len() + ")");
+    agent.send("update.alarms", alarms);
 });
 
 agent.on("clock.stop.alarm", function(dummy) {

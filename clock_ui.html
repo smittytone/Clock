@@ -209,10 +209,7 @@
       getAlarms();
 
       // Auto-reload data in 120 seconds
-      if (!stateflag) {
-        checkState();
-        stateflag = true;
-      }
+      setTimeout(checkState, 60000);
     }
 
     function updateState(s) {
@@ -269,8 +266,8 @@
         url : agenturl + '/state',
         type: 'GET',
         success : function(response) {
-          updateState(response)
-          setTimeout(checkState, 120000);
+          updateReadout(response)
+          // setTimeout(checkState, 120000);
         },
         error : function(xhr, textStatus, error) {
           if (error) {
