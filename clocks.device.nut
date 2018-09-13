@@ -172,11 +172,11 @@ function checkAlarms() {
     // Do we need to display an alarm screen flash? **** EXPERIMENTAL ****
     if (alarms.len() > 0) {
         foreach (alarm in alarms) {
-            if (alarm.hour == hours && alarm.mins == minutes) {
+            if (alarm.hour == hours && alarm.min == minutes) {
                 if (!alarm.on && !alarm.done) {
                     if (debug) server.log("Alarm triggered");
                     alarmFlag = 1;
-                    alarm.offmins = alarm.mins + ALARM_DURATION;
+                    alarm.offmins = alarm.min + ALARM_DURATION;
                     alarm.offhour = alarm.hour
                     if (alarm.offmins > 59) {
                         alarm.offmins = 60 - alarm.offmins;
@@ -326,6 +326,32 @@ function discHandler(event) {
     if ("type" in event) discFlag = (event.type == "connected") ? false : true;
 }
 
+// ALARM FUNCTONS
+// Sort the alarms into order
+function sortAlarms() {
+    alarms.sort(function(a, b) {
+        if (a.hour > b.hour) return 1;
+        if (a.hour < b.hour) return -1;
+
+        if (a.min > b.min) return 1;
+        if (a.min < b.min) return -1;
+
+        return 0;
+    });
+}
+
+
+function sortFunction(first, second) {
+  local tab = {"one" : 1, "two" : 2, "three" : 3, "four" : 4, "five" : 5};
+	
+  // Sort strings based on the numeric value in the table
+  local a = tab[first];
+  local b = tab[second];
+	
+  if (a > b) return 1;
+  if (a < b) return -1;
+  return 0;
+}
 
 // START OF PROGRAM
 
@@ -368,10 +394,13 @@ agent.on("clock.set.debug", setDebug);
 agent.on("clock.set.alarm", function(newAlarm) {
     if (alarms.len() > 0) {
         foreach (alarm in alarms) {
-            if (alarm.hour == newAlarm.hour && alarm.mins == newAlarm.mins) {
+            if (alarm.hour == newAlarm.hour && alarm.min == newAlarm.min) {
                 // Alarm matches an existing one - is the use just updating repeat?
                 if (alarm.repeat == newAlarm.repeat) return;
                 alarm.repeat = newAlarm.repeat;
+                if (debug) server.log("Alarm updated");
+                agent.send("update.alarms", alarms);
+                return;
             }
         }
     }
@@ -381,7 +410,14 @@ agent.on("clock.set.alarm", function(newAlarm) {
     newAlarm.offmins <- -1;
     newAlarm.offhour <- -1;
     alarms.append(newAlarm);
+    sortAlarms();
     if (debug) server.log("Alarm set (" + alarms.len() + ")");
+    agent.send("update.alarms", alarms);
+});
+
+agent.on("clock.clear.alarm", function(index) {
+    if (!(index > alarms.len() - 1)) alarms.remove(index);
+    if (debug) server.log("Alarm removed (" + alarms.len() + ")");
     agent.send("update.alarms", alarms);
 });
 

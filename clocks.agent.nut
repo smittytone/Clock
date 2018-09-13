@@ -177,7 +177,7 @@ api.get("/", function(context) {
         GET controller/state -> JSON, subset of settings + connection state
 
     ** Settings **
-        GET /settings -> JSON, settings + connection state
+        GET  /settings -> JSON, settings + connection state
         POST /settings <- JSON, one or more settings to change.
 
     ** Actions **
@@ -192,6 +192,7 @@ api.get("/settings", function(context) {
 api.post("/settings", function(context) {
     // A POST request made to /settings, so apply the requested setting
     try {
+        server.log(context.req.rawbody);
         local data = http.jsondecode(context.req.rawbody);
         local error = null;
 
@@ -296,11 +297,38 @@ api.post("/settings", function(context) {
                     }
 
                     prefs.offset = value.offset - 12;
-                    device.send("clock.set.utc", prefs.offset);
+                }
+                
+                device.send("clock.set.utc", (prefs.utc ? prefs.offset : "N"));
+                if (debug) server.log("World time turned " + (prefs.utc ? "on" : "off") + ", offset: " + prefs.offset);
+            }
+
+            if (setting == "alarm") {
+                if (typeof value != "table") {
+                    error = "Mis-formed parameter for alarm";
+                    break;
                 }
 
-                device.send("clock.set.light", prefs.on);
-                if (debug) server.log("World time turned " + (prefs.utc ? "on" : "off") + ", offset: " + prefs.offset);
+                if ("action" in value) {
+                    if (value.action == "add") {
+                        if (alarms.len() == MAX_ALARMS) {
+                            error = "Maximum number of alarms exceeded";
+                            break;
+                        }
+
+                        local alarm = {};
+                        if ("hour" in value) alarm.hour <- value.hour.tointeger();
+                        if ("min" in value) alarm.min <- value.min.tointeger();
+                        if ("repeat" in value) alarm.repeat <- (value.repeat == "true" ? true : false);
+                        
+                        device.send("clock.set.alarm", alarm);
+                        if (debug) server.log("Alarm set for " + alarm.hour + ":" + alarm.min + " (Repeat: " + (alarm.repeat ? "yes" : "no") + ")");
+                    }
+
+                    if (value.action == "delete") {
+                        if ("index" in value) device.send("clock.clear.alarm", value.index.tointeger());
+                    }
+                }
             }
         }
 
@@ -318,7 +346,7 @@ api.post("/settings", function(context) {
         }
     } catch (err) {
         server.error(err);
-        context.send(400, "Bad data posted");
+        context.send(400, "Bad data posted: " + context.req.rawbody);
         return;
     }
 
@@ -368,48 +396,6 @@ api.post("/action", function(context) {
         context.send(400, "Bad data posted");
         server.error(err);
         return;
-    }
-});
-
-api.get("/alarms", function(context) {
-    // A GET request made to /alarms requesting a list of alarms
-    local alarmList = {};
-    alarmList.alarms <- [];
-    
-    if (alarms.len() > 0) {
-        foreach (alarm in alarms) {
-            local a = {};
-            a.hour <- alarm.hour.tostring();
-            a.minute <- alarm.mins.tostring();
-            a.repeat <- alarm.repeat;
-            alarmList.alarms.append(a);
-        }
-    }
-
-    context.send(200, http.jsonencode(alarmList));
-});
-
-api.post("/alarms", function(context) {
-    // A POST request made to /alarms setting an alarm
-    if (alarms.len() == MAX_ALARMS) {
-        context.send(400, "Maximum number of alarms exceeded");
-        return;
-    }
-
-    try {
-        local data = http.jsondecode(context.req.rawbody);
-        local alarm = {};
-        
-        if ("hour" in data) alarm.hour <- data.hour.tointeger();
-        if ("minute" in data) alarm.mins <- data.minute.tointeger();
-        if ("repeat" in data) alarm.repeat <- (data.repeat == "true" ? true : false);
-        if (debug) server.log("Alarm set for " + data.hour + ":" + data.minute + " (Repeat: " + (alarm.repeat ? "yes" : "no") + ")");
-        
-        device.send("clock.set.alarm", alarm);
-        context.send(200, "Alarm set");
-    } catch (err) {
-        context.send(400, "Bad data posted");
-        server.error(err);
     }
 });
 
