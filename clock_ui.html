@@ -101,8 +101,15 @@
             <button class='btn btn-light' type='submit' id='onoff' style='width:200px'>Turn Display Off</button>
           </div>
           <p>&nbsp;</p>
-          <h4 align='center'>Alarms</h4>
-            <p class='alarm-list text-center'><span></span></p>
+          <div align='center'>
+            <h4>Alarms</h4>
+            <p class='alarm-list'><span></span></p>
+            <p>Add an Alarm (24-hour clock)</p>
+            <p>
+            Hour : <input type='text' id='enter-hour' min='0' max='23' style='width:60px;color:black;' placeholder='15'>&nbsp; 
+            Minute : <input type='text' id='enter-min' min='0' max='59' style='width:60px;color:black;' placeholder='00'></p>
+            <button class='btn btn-light' type='submit' id='setalarm' style='width:200px'>Set Alarm</button>
+          </div>
           <p>&nbsp;</p>
           <div class='advancedsettings' style='background-color:#cccccc'>
             <p class='showhide text-center' style='line-height:36px;color:black;'>Advanced Settings</p>
@@ -137,7 +144,6 @@
     // Variables
     var agenturl = '%s';
     var displayon = true;
-    var stateflag = false;
 
     // Get initial readings
     getState(updateReadout);
@@ -165,7 +171,8 @@
     slider.addEventListener('mouseup', updateutc);
     slider.addEventListener('touchend', updateutc);
     $('.utc-status span').text(slider.value - 12);
-
+    
+    // Configure Show/Hide Advanced Settings toggle
     $('.showhide').click(function(){
       $('.advanced').toggle();
     });
@@ -185,41 +192,68 @@
     }
 
     function updateReadout(data) {
-      var s = data.split('.');
-      document.getElementById('mode').checked = (s[0] == '1') ? true : false;
-      document.getElementById('bst').checked = (s[1] == '1') ? true : false;
-      document.getElementById('seconds').checked = (s[3] == '1') ? true : false;
-      document.getElementById('flash').checked = (s[2] == '1') ? true : false;
-      document.getElementById('utc').checked = (s[5] == '1') ? true : false;
-      document.getElementById('debug').checked = (s[9] == '1') ? true : false;
-      var u = parseInt(s[6]);
+      var s = JSON.parse(data);
+      document.getElementById('mode').checked = s['mode'];
+      document.getElementById('bst').checked = s['bst'];
+      document.getElementById('seconds').checked = s['colon'];
+      document.getElementById('flash').checked = s['flash'];
+      document.getElementById('utc').checked = s['world']['utc'];
+      document.getElementById('debug').checked = s['debug'];
+      
+      var u = parseInt(s['world']['offset']);
       $('.utc-status span').text(u - 12);
       $('#utcs').val(u);
-      console.log(u);
 
-      $('.onoff-button button').text((s[7] == '1') ? 'Turn Display Off' : 'Turn Display On');
+      $('.onoff-button button').text(s['on']) ? 'Turn Display Off' : 'Turn Display On';
       displayon = (s[7] == '1');
 
-      var b = parseInt(s[4]);
+      var b = parseInt(s['bright']);
       $('.brightness-status span').text(b);
       $('#brightness').val(b);
 
-      updateState(s[8]);
-
-      getAlarms();
+      showState(s['on']);
+      showAlarms(s['alarms']);
 
       // Auto-reload data in 120 seconds
-      setTimeout(checkState, 60000);
+      setTimeout(getState(updateReadout), 60000);
     }
 
-    function updateState(s) {
-      if (s == 'd') {
-        $('.clock-status span').text('This cløck is offline');
+    function showState(state) {
+      // Update the readout indicating whether the clock is connected or not
+      $('.clock-status span').text('This cløck is ' + (state ? 'online' : 'offline'));
+    }
+
+    function showAlarms(alarms) {
+      // Take the array of alarms sent by the clock and generate a list to present
+      if (alarms.length == 0) {
+        $('.alarm-list span').text('No alarms set');
       } else {
-        $('.clock-status span').text('This cløck is online');
+        let s = 'Current Alarms<br />';
+        for (var i = 0; i < alarms.length ; i++) {
+          let alarm = alarms[i];
+          s = s + i.toString() + '.' + alarm.hour + ':' + alarm.minute + (alarm.repeat == true ? ' (Repeats)' : '') + '<br />';
+        }
+        $('.alarm-list span').html(s);
       }
     }
-
+/*
+    function checkState() {
+      $.ajax({
+        url : agenturl + '/state',
+        type: 'GET',
+        success : function(response) {
+          updateReadout(response)
+          // setTimeout(checkState, 120000);
+        },
+        error : function(xhr, textStatus, error) {
+          if (error) {
+            $('.clock-status span').text(error);
+          }
+        },
+        cache: false
+      });
+    }
+*/
     function getState(callback) {
       // Request the current data
       $.ajax({
@@ -239,94 +273,49 @@
       });
     }
 
-    function getAlarms() {
-      // Request the current data
-      $.ajax({
-        url : agenturl + '/alarms',
-        type: 'GET',
-        success : function(response) {
-          let alarms = JSON.parse(response).alarms;
-          if (alarms.length == 0) {
-            $('.alarm-list span').text('No alarms set');
-          } else {
-            let s = '';
-            for (var i = 0; i < alarms.length ; i++) {
-              let alarm = alarms[i];
-              s = s + alarm.hour + ':' + alarm.minute + (alarm.repeat == true ? ' (Repeats)' : '') + '<br />';
-            }
-            $('.alarm-list span').html(s);
-          }
-        },
-        cache: false
-      });
-    }
-
-    function checkState() {
-      $.ajax({
-        url : agenturl + '/state',
-        type: 'GET',
-        success : function(response) {
-          updateReadout(response)
-          // setTimeout(checkState, 120000);
-        },
-        error : function(xhr, textStatus, error) {
-          if (error) {
-            $('.clock-status span').text(error);
-          }
-        },
-        cache: false
-      });
-    }
-
-
-    
-
     function setmode() {
-      var d = { 'setmode' : ((document.getElementById('mode').checked == true) ? '1' : '0') };
-      sendstate(d);
+      var d = { 'mode' : ((document.getElementById('mode').checked == true) ? 'true' : 'false') };
+      updateSettings(d);
     }
 
     function setbst() {
-      var d = { 'setbst' : ((document.getElementById('bst').checked == true) ? '1' : '0') };
-      sendstate(d);
+      var d = { 'bst' : ((document.getElementById('bst').checked == true) ? 'true' : 'false') };
+      updateSettings(d);
     }
 
     function setcolon() {
-      var d = { 'setcolon' : ((document.getElementById('seconds').checked == true) ? '1' : '0') };
-      sendstate(d);
+      var d = { 'colon' : ((document.getElementById('seconds').checked == true) ? 'true' : 'false') };
+      updateSettings(d);
     }
 
     function setflash() {
-      var d = { 'setflash' : ((document.getElementById('flash').checked == true) ? '1' : '0') };
-      sendstate(d);
+      var d = { 'flash' : ((document.getElementById('flash').checked == true) ? 'true' : 'false') };
+      updateSettings(d);
     }
 
     function setbright() {
-      var d = { 'setbright' : ($('#brightness').val()) };
-      sendstate(d);
+      var d = { 'bright' : ($('#brightness').val()) };
+      updateSettings(d);
     }
 
     function setlight() {
       displayon = !displayon;
       $('.onoff-button button').text(displayon ? 'Turn Display Off' : 'Turn Display On');
-      var s = (displayon ? '1' : '0');
-      var d = { 'setlight' :  s };
-      sendstate(d);
+      var s = (displayon ? 'true' : 'false');
+      var d = { 'on' : s };
+      updateSettings(d);
     }
 
     function setutc() {
-      var d = { 'setutc' : ((document.getElementById('utc').checked == true) ? '1' : '0'), 'utcval' : $('#utcs').val() };
-      sendstate(d);
+      var d = { 'world' : { 'utc' : ((document.getElementById('utc').checked == true) ? 'true' : 'false'), 'offset' : $('#utcs').val() }};
+      updateSettings(d);
     }
-
-    function sendstate(data) {
+    
+    function updateSettings(data) {
       $.ajax({
         url : agenturl + '/settings',
         type: 'POST',
         data: JSON.stringify(data),
-        success: function() {
-          getState(updateReadout);
-        },
         error : function(xhr, textStatus, error) {
           if (error) {
             $('.clock-status span').text(error);
