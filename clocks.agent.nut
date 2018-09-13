@@ -82,7 +82,7 @@ function encodePrefsForUI() {
         }
     }
 
-    return http.jsonencode(data);
+    return http.jsonencode(data, {"compact":true});
 }
 
 function encodePrefsForWatch() {
@@ -93,7 +93,7 @@ function encodePrefsForWatch() {
                    "world"       : { "utc" : prefs.utc },
                    "on"          : prefs.on,
                    "isconnected" : device.isconnected() };
-    return http.jsonencode(data);
+    return http.jsonencode(data, {"compact":true});
 }
 
 function resetPrefs() {
@@ -169,11 +169,20 @@ api.get("/", function(context) {
     context.send(200, format(HTML_STRING, http.agenturl()));
 });
 
-api.get("/state", function(context) {
-    // A GET request made to /state, so return clock's connection state
-    local a = (device.isconnected() ? "c" : "d");
-    context.send(200, a);
-});
+/*
+    **Clock Endpoints**
+
+    ** Controller Support**
+        GET /controller/info -> JSON, app ID, watch support
+        GET controller/state -> JSON, subset of settings + connection state
+
+    ** Settings **
+        GET /settings -> JSON, settings + connection state
+        POST /settings <- JSON, one or more settings to change.
+
+    ** Actions **
+        POST /actions <- JSON, action type, eg. reset, plus binary switches
+*/
 
 api.get("/settings", function(context) {
     // A GET request made to /settings, so return the clock settings
