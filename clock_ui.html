@@ -224,7 +224,7 @@
             $('#brightness').val(b);
 
             // Set the line indicating whether the clock is connected to the server or not
-            showState(s['on']);
+            showState(s['isconnected']);
 
             // Build the list of alarms
             showAlarms(s['alarms']);
@@ -274,8 +274,8 @@
                 type: 'GET',
                 success : function(response) {
                     var j = JSON.parse(response);
-                    if ('on' in j) {
-                        showState(j['on']);
+                    if ('isconnected' in j) {
+                        showState(j['isconnected']);
                     };
                 },
                 error : function(xhr, textStatus, error) {
