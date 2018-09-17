@@ -41,13 +41,14 @@ Visit your cløck’s agent URL for a control interface.
 
 ## Release Notes ##
 
-- 2.0 &mdash; *In Development*
+- 2.0.0 &mdash; *In Development*
   - Completely redesign agent API
-  - Update to [DisconnectionManager 1.1.0](https://github.com/smittytone/generic/blob/master/disconnect.nut).
+  - Add alarms
+  - Update [DisconnectionManager](https://github.com/smittytone/generic/blob/master/disconnect.nut).
   - Fix CSS bugs
   - Initial Controller support
   - Display a leading zero in 24-hour mode (times below 10am)
-- 1.4 &mdash; *13 June 13 2018*
+- 1.4.0 &mdash; *13 June 13 2018*
   - Update to [Bootstrap 4.1.1](https://getbootstrap.com/)
   - Update Web UI based on Bootstrap
   - Separate out Web UI into own file for clarity
@@ -55,7 +56,7 @@ Visit your cløck’s agent URL for a control interface.
   - Upgrade [Rocky](https://developer.electricimp.com/libraries/utilities/rocky) to 2.0.1
   - Update to [JQuery 3.3.1](https://jquery.com)
   - Prevent Ajax XHR cacheing
-- 1.3
+- 1.3.0
   - Minor changes and bug fixes.
 
 ## Licence ##
