@@ -44,11 +44,10 @@ Visit your cløck’s agent URL for a control interface.
 - 2.0.0 &mdash; *In Development*
   - Completely redesign agent API
   - Add alarms
-  - Update [DisconnectionManager](https://github.com/smittytone/generic/blob/master/disconnect.nut).
+  - Controller support
   - Fix CSS bugs
-  - Initial Controller support
   - Display a leading zero in 24-hour mode (times below 10am)
-- 1.4.0 &mdash; *13 June 13 2018*
+- 1.4.0 &mdash; *13 June 2018*
   - Update to [Bootstrap 4.1.1](https://getbootstrap.com/)
   - Update Web UI based on Bootstrap
   - Separate out Web UI into own file for clarity
