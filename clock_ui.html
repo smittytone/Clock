@@ -53,50 +53,54 @@
 <body>
     <div class='container'>
         <div class='uicontent'>
-        <!-- Header Row -->
-        <div class='row' align='center'>
-            <div class='col'>
-                <h2>CLØCK</h2>
-                <h5>Your Digital Clock<br>&nbsp;</h5>
-                <h5 class='clock-status'><i><span>This cløck is online</span></i></h5>
+            <!-- Header Row -->
+            <div class='row' align='center'>
+                <div class='col'>
+                    <h2>CLØCK</h2>
+                    <h5>Your Digital Clock<br />&nbsp;</h5>
+                    <h5 class='clock-status'><i><span>This cløck is online</span></i></h5>
                 </div>
-        </div>
-        <!-- Settings and Controls Row -->
-        <div class='row'>
-            <div class='col-2'>&nbsp;</div>
+            </div>
+            <!-- Settings and Controls Row -->
+            <div class='row'>
+                <div class='col-2'>&nbsp;</div>
                 <div class='col-8'>
                     <h4 align='center'>Time Settings</h4>
                     <label class='checkarea'> 24-Hour Mode (Switch off for AM/PM)
-                        <input type='checkbox' name='mode' id='mode' value='mode'><span class='checkmark'></span>
+                        <input type='checkbox' name='mode' id='mode' value='mode'><span class='checkmark' /></span>
                     </label>
                     <label class='checkarea'> Apply Daylight Savings Time Automatically
-                        <input type='checkbox' name='bst' id='bst' value='bst'><span class='checkmark'></span>
+                        <input type='checkbox' name='bst' id='bst' value='bst'><span class='checkmark' /></span>
                     </label>
                     <p class='subhead text-center'>World Time</p>
                     <label class='checkarea utc-checkbox'> Show World Time
-                        <input type='checkbox' name='utc' id='utc' value='utc'><span class='checkmark'></span>
+                        <input type='checkbox' name='utc' id='utc' value='utc'><span class='checkmark' /></span>
                     </label>
-                    <input type='range' class='slider' name='utcs' id='utcs' value='0' min='0' max='24'>
-                    <table width='100%%'><tr>
-                        <td width='30%%' align='left'><small>-12</small></td>
-                        <td width='40%%' align='center'><small>0</small></td>
-                        <td width='30%%' align='right'><small>+12</small></td>
-                    </tr></table>
+                    <input type='range' class='slider' name='utcs' id='utcs' value='0' min='0' max='24' />
+                    <table width='100%%'>
+                        <tr>
+                            <td width='30%%' align='left'><small>-12</small></td>
+                            <td width='40%%' align='center'><small>0</small></td>
+                            <td width='30%%' align='right'><small>+12</small></td>
+                        </tr>
+                    </table>
                     <p class='utc-status subslider' align='right'>Offset from local time: <span></span> hours</p>
                     <h4 align='center'>Display Settings</h4>
                     <label class='checkarea'> Show Seconds Indicator
-                        <input type='checkbox' name='seconds' id='seconds' value='seconds'><span class='checkmark'></span>
+                        <input type='checkbox' name='seconds' id='seconds' value='seconds'><span class='checkmark' /></span>
                     </label>
                     <label class='checkarea'> Flash Seconds Indicator
-                        <input type='checkbox' name='flash' id='flash' value='seconds'><span class='checkmark'></span>
+                        <input type='checkbox' name='flash' id='flash' value='seconds'><span class='checkmark' /></span>
                     </label>
                     <p class='subhead text-center'>Brightness</p>
-                    <input type='range' class='slider' name='brightness' id='brightness' value='15' min='1' max='15'>
-                    <table width='100%%'><tr>
-                        <td width='50%%' align='left'><small>Low</small></td>
-                        <td width='50%%' align='right'><small>High</small></td>
-                    </tr></table>
-                    <p class='brightness-status subslider' align='right'>Current brightness: <span></span><br>&nbsp;</p>
+                    <input type='range' class='slider' name='brightness' id='brightness' value='15' min='1' max='15' />
+                    <table width='100%%'>
+                        <tr>
+                            <td width='50%%' align='left'><small>Low</small></td>
+                            <td width='50%%' align='right'><small>High</small></td>
+                        </tr>
+                    </table>
+                    <p class='brightness-status subslider' align='right'>Current brightness: <span></span><br />&nbsp;</p>
                     <div class='onoff-button' align='center'>
                         <button class='btn btn-light' type='submit' id='onoff' style='width:200px'>Turn Display Off</button>
                     </div>
@@ -106,8 +110,8 @@
                         <p class='alarm-list'><span></span></p>
                         <p>Add an Alarm (24-hour clock)</p>
                         <p style='font-size:1em;'>
-                            Hour : <input type='text' id='enter-hour' min='0' max='23' style='width:60px;color:black;' placeholder='15'>&nbsp; 
-                            Minute : <input type='text' id='enter-min' min='0' max='59' style='width:60px;color:black;' placeholder='00'>&nbsp;
+                            Hour : <input type='text' id='enter-hour' min='0' max='23' style='width:60px;color:black;' placeholder='15' />&nbsp; 
+                            Minute : <input type='text' id='enter-min' min='0' max='59' style='width:60px;color:black;' placeholder='00' />&nbsp;
                             Repeat: <input type='checkbox' name='repeat' id='repeat' value=''>
                         </p>
                         <button class='btn btn-light' type='submit' id='setalarm' style='width:200px'>Set Alarm</button>
@@ -118,11 +122,11 @@
                         <div class='advanced' align='center'>
                             <br />
                             <div class='debug-checkbox' style='color:black;'>
-                                <input type='checkbox' name='debug' id='debug' value='debug'> Debug Mode
+                                <input type='checkbox' name='debug' id='debug' value='debug' /> Debug Mode
                             </div>
                             <br />
                             <div class='reset-button' align='center'>
-                                <button class='btn btn-danger' type='submit' id='reset' style='width:200px'>Reset Cløck</button><br>&nbsp;
+                                <button class='btn btn-danger' type='submit' id='reset' style='width:200px'>Reset Cløck</button><br />&nbsp;
                             </div>
                         </div>
                     </div>
@@ -132,8 +136,8 @@
             <!-- Colophon Row -->
             <div class='row'>
                 <div class='col'>
-                    <p class='colophon text-center'>Cløck copyright &copy; 2014-18 Black Pyramid (Time)<br>
-                    <a href='https://github.com/smittytone/clock'><img src='https://smittytone.github.io/images/rassilon.png' width='32' height='32'></a></p>
+                    <p class='colophon text-center'>Cløck copyright &copy; 2014-18 Black Pyramid (Time)<br />
+                    <a href='https://github.com/smittytone/clock'><img src='https://smittytone.github.io/images/rassilon.png' width='32' height='32' /></a></p>
                 </div>
             </div>
         </div>
@@ -371,7 +375,7 @@
 
         function setDebug() {
             // Tell the device to enter or leave debug mode
-            var d = (document.getElementById('debug').checked == true) ? '1' : '0';
+            var d = document.getElementById('debug').checked;
             $.ajax({
                 url : agenturl + '/action',
                 type: 'POST',
