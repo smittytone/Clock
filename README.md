@@ -1,4 +1,4 @@
-# cløck 1.4 #
+# cløck 2.0.0 #
 
 A very simple four-digit timepiece developed using the [Electric Imp Platform](https://electricimp.com). It makes use of the [Adafruit 0.56-inch 4-digit, 7-segment LED display](http://www.adafruit.com/products/878), which is based on the Holtek HT16K33 controller.
 
@@ -41,16 +41,23 @@ Visit your cløck’s agent URL for a control interface.
 
 ## Release Notes ##
 
-- 1.4 *June 13, 2018*
-    - Update to [Bootstrap 4.1.1](https://getbootstrap.com/)
-        - Update Web UI based on Bootstrap
-        - Separate out Web UI into own file for clarity
-    - Add [DisconnectionManager](https://github.com/smittytone/generic/blob/master/disconnect.nut) support
-    - Upgrade [Rocky](https://developer.electricimp.com/libraries/utilities/rocky) to 2.0.1
-    - Update to [JQuery 3.3.1](https://jquery.com)
-    - Prevent Ajax XHR cacheing
-- 1.3
-    - Minor changes and bug fixes.
+- 2.0.0 &mdash; *1 November 2018*
+  - Update to [Bootstrap 4.1.3](https://getbootstrap.com/)
+  - Completely redesign agent API
+  - Add alarms
+  - Controller support
+  - Fix CSS bugs
+  - Display a leading zero in 24-hour mode (times below 10am)
+- 1.4.0 &mdash; *13 June 2018*
+  - Update to [Bootstrap 4.1.1](https://getbootstrap.com/)
+  - Update Web UI based on Bootstrap
+  - Separate out Web UI into own file for clarity
+  - Add [DisconnectionManager](https://github.com/smittytone/generic/blob/master/disconnect.nut) support
+  - Upgrade [Rocky](https://developer.electricimp.com/libraries/utilities/rocky) to 2.0.1
+  - Update to [JQuery 3.3.1](https://jquery.com)
+  - Prevent Ajax XHR cacheing
+- 1.3.0
+  - Minor changes and bug fixes.
 
 ## Licence ##
 

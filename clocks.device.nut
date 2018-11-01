@@ -14,6 +14,7 @@
 const TICK_TIME = 0.5;
 const TICK_TOTAL = 4;
 const HALF_TICK_TOTAL = 2;
+const ALARM_DURATION = 2;
 
 
 // MAIN VARIABLES
@@ -58,7 +59,7 @@ function setDisplay() {
         // NOTE The first digit's decimal point is set if the clock is disconnected
         // ie. if 'discFlag' is true
         if (a < 10) {
-            display.writeNumber(0, 16, discFlag);
+            display.writeNumber(0, 0, discFlag);
             display.writeNumber(1, a, false);
         } else if (a > 9 && a < 20) {
             display.writeNumber(0, 1, discFlag)
@@ -171,23 +172,23 @@ function checkAlarms() {
     // Do we need to display an alarm screen flash? **** EXPERIMENTAL ****
     if (alarms.len() > 0) {
         foreach (alarm in alarms) {
-            if (alarm.hours == hours && alarm.minutes == minutes) {
-                if (!("on" in alarm) && !alarm.done) {
+            if (alarm.hour == hours && alarm.min == minutes) {
+                if (!alarm.on && !alarm.done) {
                     if (debug) server.log("Alarm triggered");
                     alarmFlag = 1;
-                    alarm.offminutes = alarm.minutes + 5;
-                    alarm.offhours = alarm.hours;
-                    if (alarm.offminutes > 59) {
-                        alarm.offminutes = 60 - alarm.offminutes;
-                        alarm.offhours++;
-                        if (alarm.offhours > 23) alarm.offhours = 24 - alarm.offhours;
+                    alarm.offmins = alarm.min + ALARM_DURATION;
+                    alarm.offhour = alarm.hour
+                    if (alarm.offmins > 59) {
+                        alarm.offmins = 60 - alarm.offmins;
+                        alarm.offhour++;
+                        if (alarm.offhour > 23) alarm.offhour = 24 - alarm.offhour;
                     }
 
-                    alarm.on <- true;
+                    alarm.on = true;
                 }
             }
 
-            if (alarm.offhours == hours && alarm.offminutes == minutes) {
+            if (alarm.offhour == hours && alarm.offmins == minutes) {
                 alarmFlag = -1;
                 if (debug) server.log("Alarm stopped");
                 if (!alarm.repeat) alarm.done = true;
@@ -195,15 +196,19 @@ function checkAlarms() {
         }
 
         local i = 0;
+        local flag = false;
         while (i < alarms.len()) {
             local alarm = alarms[i];
             if (alarm.done == true) {
+                flag = true;
                 alarms.remove(i);
                 if (debug) server.log("Alarm deleted");
             } else {
                 i++;
             }
         }
+
+        if (flag) agent.send("update.alarms", alarms);
     }
 }
 
@@ -318,12 +323,35 @@ function setPrefs(prefsTable) {
 // Set up connectivity policy — this should come as early in the code as possible
 function discHandler(event) {
     if ("message" in event) server.log(event.message);
-
-    if ("type" in event) {
-        discFlag = (event.type == "connected") ? false : true;
-    }
+    if ("type" in event) discFlag = (event.type == "connected") ? false : true;
 }
 
+// ALARM FUNCTONS
+// Sort the alarms into order
+function sortAlarms() {
+    alarms.sort(function(a, b) {
+        if (a.hour > b.hour) return 1;
+        if (a.hour < b.hour) return -1;
+
+        if (a.min > b.min) return 1;
+        if (a.min < b.min) return -1;
+
+        return 0;
+    });
+}
+
+
+function sortFunction(first, second) {
+  local tab = {"one" : 1, "two" : 2, "three" : 3, "four" : 4, "five" : 5};
+	
+  // Sort strings based on the numeric value in the table
+  local a = tab[first];
+  local b = tab[second];
+	
+  if (a > b) return 1;
+  if (a < b) return -1;
+  return 0;
+}
 
 // START OF PROGRAM
 
@@ -366,16 +394,31 @@ agent.on("clock.set.debug", setDebug);
 agent.on("clock.set.alarm", function(newAlarm) {
     if (alarms.len() > 0) {
         foreach (alarm in alarms) {
-            if (alarm.hours == newAlarm.hours && alarm.minutes == newAlarm.minutes) {
+            if (alarm.hour == newAlarm.hour && alarm.min == newAlarm.min) {
                 // Alarm matches an existing one - is the use just updating repeat?
                 if (alarm.repeat == newAlarm.repeat) return;
                 alarm.repeat = newAlarm.repeat;
+                if (debug) server.log("Alarm updated");
+                agent.send("update.alarms", alarms);
+                return;
             }
         }
     }
 
+    newAlarm.on <- false;
+    newAlarm.done <- false;
+    newAlarm.offmins <- -1;
+    newAlarm.offhour <- -1;
     alarms.append(newAlarm);
-    if (debug) server.log("Alarm set");
+    sortAlarms();
+    if (debug) server.log("Alarm set (" + alarms.len() + ")");
+    agent.send("update.alarms", alarms);
+});
+
+agent.on("clock.clear.alarm", function(index) {
+    if (!(index > alarms.len() - 1)) alarms.remove(index);
+    if (debug) server.log("Alarm removed (" + alarms.len() + ")");
+    agent.send("update.alarms", alarms);
 });
 
 agent.on("clock.stop.alarm", function(dummy) {
