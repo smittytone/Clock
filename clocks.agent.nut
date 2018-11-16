@@ -207,7 +207,7 @@ api.post("/settings", function(context) {
                 }
 
                 prefs.hrmode = value == "true" ? true : false;
-                device.send("clock.switch.mode", prefs.hrmode);
+                device.send("clock.set.mode", prefs.hrmode);
                 if (debug) server.log("Clock mode turned to " + (prefs.hrmode ? "24 hour" : "12 hour"));
             }
 
@@ -219,7 +219,7 @@ api.post("/settings", function(context) {
                 }
 
                 prefs.bst = value == "true" ? true : false;
-                device.send("clock.switch.bst", prefs.bst);
+                device.send("clock.set.bst", prefs.bst);
                 if (debug) server.log("Clock bst observance turned " + (prefs.bst ? "on" : "off"));
             }
 
@@ -245,7 +245,7 @@ api.post("/settings", function(context) {
                 }
 
                 prefs.colon = value == "true" ? true : false;
-                device.send("clock.switch.colon", prefs.colon);
+                device.send("clock.set.colon", prefs.colon);
                 if (debug) server.log("Clock colon turned " + (prefs.colon ? "on" : "off"));
             }
 
@@ -257,7 +257,7 @@ api.post("/settings", function(context) {
                 }
 
                 prefs.flash = value == "true" ? true : false;
-                device.send("clock.switch.flash", prefs.flash);
+                device.send("clock.set.flash", prefs.flash);
                 if (debug) server.log("Clock colon flash turned " + (prefs.flash ? "on" : "off"));
             }
 

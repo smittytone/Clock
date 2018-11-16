@@ -6,137 +6,65 @@
 // cut and paste the named library's code over the following line
 #import "../HT16K33Segment/HT16K33Segment.class.nut"
 #import "../generic/utilities.nut"
-#import "../generic/bootmessage.nut"
 #import "../generic/disconnect.nut"
 
 
 // CONSTANTS
-const TICK_TIME = 0.5;
+const DISCONNECT_TIMEOUT = 60;
+const RECONNECT_TIMEOUT = 15;
+const TICK_DURATION = 0.5;
 const TICK_TOTAL = 4;
 const HALF_TICK_TOTAL = 2;
 const ALARM_DURATION = 2;
+//const INITIAL_ANGLE = 0;
 
 
-// MAIN VARIABLES
+// GOLBAL VARIABLES
 // Objects
 local display = null;
 local tickTimer = null;
+local syncTimer = null;
 local settings = null;
 local alarms = [];
 
 // Numeric values
-local hours = 0;
-local minutes = 0;
 local seconds = 0;
+local minutes = 0;
+local hours = 0;
+local dayw = 0;
+local day = 0;
+local month = 0;
+local year = 0;
 local tickCount = 0;
+local disTime = 0;
 
 // Runtime flags
+local isDisconnected = false;
+local isConnecting = false;
+local isAdvanceSet = false;
+local isPM = false;
 local tickFlag = true;
-local pmFlag = false;
-local discFlag = false;
 local debug = true;
-local alarmFlag = 0;
+
+// Alarms
+local alarmState = 0;
 
 
-// DISPLAY FUNCTIONS
-function setDisplay() {
-    // The main function for updating the display
-
-    // Not supposed to be showing the LED? Then bail
-    // NOTE if settings.on is false, the display will already be powered down
-    if (!settings.on) return;
-
-    // Set the digit counters a and b
-    local a = hours;
-    local b = 0;
-
-    // Clear the display and colon
-    display.clearBuffer().setColon(false);
-
-    // Set the hours digits
-    if (settings.hrmode == true) {
-        // 24-hour clock mode
-        // NOTE The first digit's decimal point is set if the clock is disconnected
-        // ie. if 'discFlag' is true
-        if (a < 10) {
-            display.writeNumber(0, 0, discFlag);
-            display.writeNumber(1, a, false);
-        } else if (a > 9 && a < 20) {
-            display.writeNumber(0, 1, discFlag)
-            display.writeNumber(1, a - 10, false);
-        } else if (a > 19) {
-            display.writeNumber(0, 2, discFlag);
-            display.writeNumber(1, a - 20, false);
-        }
-    } else {
-        // 12-hour clock mode
-        // NOTE The first digit's decimal point is set if the clock is disconnected,
-        // ie. if 'discFlag' is true
-        if (a == 12 || a == 0 ) {
-            display.writeNumber(0, 1, discFlag);
-            display.writeNumber(1, 2, false);
-        } else if (a < 10) {
-            display.writeNumber(0, 16, discFlag);
-            display.writeNumber(1, a, false);
-        } else if (a == 10 || a == 11) {
-            display.writeNumber(0, 1, discFlag);
-            display.writeNumber(1, a - 10, false);
-        } else if (a > 12 && a < 22) {
-            display.writeNumber(1, a - 12, false);
-        } else if (a == 22 || a == 23) {
-            display.writeNumber(0, 1, discFlag);
-            display.writeNumber(1, a - 22, false);
-        }
-    }
-
-    // Set the minutes digits
-    if (minutes > 9) {
-        a = minutes;
-        while (a >= 0) {
-            a = a - 10;
-            b++;
-        }
-
-        // NOTE The fourth digit's decimal point is set if the clock is in 12-hour mode
-        // and we're in PM time, ie. if 'pmFlag' is true
-        display.writeNumber(4, (minutes - (10 * (b - 1))), (pmFlag && !settings.hrmode));
-        display.writeNumber(3, b - 1, false);
-    } else {
-        display.writeNumber(4, minutes, (pmFlag && !settings.hrmode));
-        display.writeNumber(3, 0, false);
-    }
-
-    // If the colon should appear - its on permanently or in a flash - set it
-    local colonState = settings.colon ? (settings.flash ? tickFlag : true) : false;
-
-    // Update the screen with time and colon
-    display.setColon(colonState).updateDisplay();
-
-    // Check for alarms **** EXPERIMENTAL ****
-    if (alarmFlag == 1) display.setDisplayFlash(2);
-    if (alarmFlag == -1) display.setDisplayFlash(0);
-    alarmFlag = 0;
-}
-
-function syncText() {
-    // Display 'SYNC' after the clock is powered up and until it receives its preferences from the agent
-    local letters = [0x6D, 0x6E, 0x00, 0x37, 0x39];
-    foreach (index, char in letters) display.writeGlyph(index, char, false);
-    display.updateDisplay();
-}
-
-
-// CLOCK FUNCTIONS
+// TIME AND DISPLAY CONTROL FUNCTIONS
 function clockTick() {
     // Set a trigger for the next tick. We do this so that the time taken
     // to run the clock_tick code to minimise the drift
-    tickTimer = imp.wakeup(TICK_TIME, clockTick);
+    tickTimer = imp.wakeup(TICK_DURATION, clockTick);
 
-    // Update the time using imp's RTC
+    // Get the current time from the imp's RTC
     local now = date();
     hours = now.hour;
-    seconds = now.sec;
     minutes  = now.min;
+    seconds = now.sec;
+    dayw = now.wday;
+    day = now.day;
+    month = now.month;
+    year = now.year;
 
     // Update the value of 'hours' to reflect displayed time
     if (settings.utc) {
@@ -151,74 +79,150 @@ function clockTick() {
         // We are displaying local time -
         // is daylight savings being observed?
         if (settings.bst && utilities.bstCheck()) hours++;
-        if (hours > 23) hours = 0
+        if (hours > 23) hours = 0;
     }
 
     // Is it PM?
-    pmFlag = (hours > 11) ? true : false;
+    isPM = hours > 11 ? true : false;
 
     // Update the tick counter and flag
-    tickCount = (tickCount == TICK_TOTAL) ? 0 : tickCount + 1;
-    tickFlag = (tickCount < HALF_TICK_TOTAL) ? true : false;
+    tickCount = tickCount == TICK_TOTAL ? 0 : tickCount + 1;
+    tickFlag = tickCount < HALF_TICK_TOTAL ? true : false;
 
     // Check for Alarms
     checkAlarms();
 
-    // Update the display
-    setDisplay();
+    // Present the current time
+    if (settings.on) displayTime();
 }
 
-function checkAlarms() {
-    // Do we need to display an alarm screen flash? **** EXPERIMENTAL ****
-    if (alarms.len() > 0) {
-        foreach (alarm in alarms) {
-            if (alarm.hour == hours && alarm.min == minutes) {
-                if (!alarm.on && !alarm.done) {
-                    if (debug) server.log("Alarm triggered");
-                    alarmFlag = 1;
-                    alarm.offmins = alarm.min + ALARM_DURATION;
-                    alarm.offhour = alarm.hour
-                    if (alarm.offmins > 59) {
-                        alarm.offmins = 60 - alarm.offmins;
-                        alarm.offhour++;
-                        if (alarm.offhour > 23) alarm.offhour = 24 - alarm.offhour;
-                    }
+function displayTime() {
+    // The main function for updating the display
 
-                    alarm.on = true;
-                }
-            }
+    // Set the digit counters a and b
+    local a = hours;
+    local b = 0;
 
-            if (alarm.offhour == hours && alarm.offmins == minutes) {
-                alarmFlag = -1;
-                if (debug) server.log("Alarm stopped");
-                if (!alarm.repeat) alarm.done = true;
-            }
+    // Clear the display and colon
+    display.clearBuffer().setColon(false);
+
+    // Set the hours
+    if (settings.mode) {
+        // 24-hour clock mode
+        // NOTE The first digit's decimal point is set if the clock is disconnected
+        // ie. if 'isDisconnected' is true
+        if (a < 10) {
+            display.writeNumber(0, 0, isDisconnected);
+            display.writeNumber(1, a, false);
+        } else if (a > 9 && a < 20) {
+            display.writeNumber(0, 1, isDisconnected)
+            display.writeNumber(1, a - 10, false);
+        } else if (a > 19) {
+            display.writeNumber(0, 2, isDisconnected);
+            display.writeNumber(1, a - 20, false);
         }
-
-        local i = 0;
-        local flag = false;
-        while (i < alarms.len()) {
-            local alarm = alarms[i];
-            if (alarm.done == true) {
-                flag = true;
-                alarms.remove(i);
-                if (debug) server.log("Alarm deleted");
-            } else {
-                i++;
-            }
+    } else {
+        // 12-hour clock mode
+        // NOTE The first digit's decimal point is set if the clock is disconnected,
+        // ie. if 'isDisconnected' is true
+        if (a == 12 || a == 0 ) {
+            display.writeNumber(0, 1, isDisconnected);
+            display.writeNumber(1, 2, false);
+        } else if (a < 10) {
+            display.writeNumber(0, 16, isDisconnected);
+            display.writeNumber(1, a, false);
+        } else if (a == 10 || a == 11) {
+            display.writeNumber(0, 1, isDisconnected);
+            display.writeNumber(1, a - 10, false);
+        } else if (a > 12 && a < 22) {
+            display.writeNumber(1, a - 12, false);
+        } else if (a == 22 || a == 23) {
+            display.writeNumber(0, 1, isDisconnected);
+            display.writeNumber(1, a - 22, false);
         }
-
-        if (flag) agent.send("update.alarms", alarms);
     }
+
+    // Set the minutes
+    if (minutes > 9) {
+        a = minutes;
+        while (a >= 0) {
+            a = a - 10;
+            b++;
+        }
+
+        // NOTE The fourth digit's decimal point is set if the clock is in 12-hour mode
+        // and we're in PM time, ie. if 'isPM' is true
+        display.writeNumber(4, (minutes - (10 * (b - 1))), (isPM && !settings.mode));
+        display.writeNumber(3, b - 1, false);
+    } else {
+        display.writeNumber(4, minutes, (isPM && !settings.mode));
+        display.writeNumber(3, 0, false);
+    }
+
+    // Check whether the colon should appear
+    local colonState = settings.colon ? (settings.flash ? tickFlag : true) : false;
+
+    // Update the screen with time and colon
+    display.setColon(colonState).updateDisplay();
+
+    // Check for alarms
+    if (alarmState == 1) display.setDisplayFlash(2);
+    if (alarmState == -1) display.setDisplayFlash(0);
+    alarmState = 0;
+}
+
+function syncText() {
+    // Display 'SYNC' after the clock is powered up and until it receives its preferences from the agent
+    if (!settings.on) return;
+    local letters = [0x6D, 0x6E, 0x00, 0x37, 0x39];
+    foreach (index, char in letters) display.writeGlyph(index, char, false);
+    display.updateDisplay();
 }
 
 
-// PREFERENCES-RELATED FUNCTIONS
-function switchMode(value) {
+// PREFERENCES FUNCTIONS
+function setPrefs(prefsTable) {
+    // Cancel the 'Sync' display timer if it has yet to fire
+    if (debug) server.log("Received preferences from agent");
+    if (syncTimer) imp.cancelwakeup(syncTimer);
+    syncTimer = null;
+
+    // Set the debug state
+    if ("debug" in prefsTable) setDebug(prefsTable.debug);
+
+    // Parse the set-up data table provided by the agent
+    settings.mode = prefsTable.hrmode;
+    settings.bst = prefsTable.bst;
+    settings.flash = prefsTable.flash;
+    settings.colon = prefsTable.colon;
+    settings.utc = prefsTable.utc;
+    settings.offset = prefsTable.offset;
+
+    // Set the display state
+    if (settings.on != prefsTable.on) setLight(prefsTable.on);
+
+    // Set the brightness
+    if (settings.brightness != prefsTable.brightness) {
+        settings.brightness = prefsTable.brightness;
+        
+        // Only set the brightness now if the display is on
+        if (settings.on) display.setBrightness(prefsTable.brightness);
+    }
+
+    // Clear the local list of alarms
+    if (alarms != null) alarms = null;
+    alarms = prefsTable.alarms;
+
+    // Only call clockTick() if we have come here *before*
+    // the main clock loop, which sets tickTimer, has started
+    if (tickTimer == null) clockTick();
+}
+
+function setMode(value) {
     // This function is called when 12/24 modes are switched by app
     // 'value' is passed in from the agent as a bool
     if (debug) server.log("Setting 24-hour mode " + (value ? "on" : "off"));
-    settings.hrmode = value;
+    settings.mode = value;
 }
 
 function setBST(value) {
@@ -244,8 +248,10 @@ function setBright(brightness) {
     // This function is called when the app changes the clock's brightness
     // 'brightness' is passed in from the agent as an integer
     if (brightness < 0 || brightness > 15 || brightness == settings.brightness) return;
-    if (debug) server.log("Setting clock brightness " + brightness);
+    if (debug) server.log("Setting display brightness " + brightness);
     settings.brightness = brightness;
+    
+    // Tell the display(s) to change their brightness
     display.setBrightness(brightness);
 }
 
@@ -267,6 +273,7 @@ function setLight(value) {
     // This function is called when the app turns the display on or off
     // 'value' is passed in from the agent as a bool
     if (debug) server.log("Setting light " + (value ? "on" : "off"));
+    
     if (value != settings.on) {
         settings.on = value;
         if (value) {
@@ -278,55 +285,74 @@ function setLight(value) {
 }
 
 function setDebug(state) {
+    // Enable or disble debugging messaging in response to a message from the UI via the agent
     debug = state;
-    server.log("Device-side debug messages " + ((debug) ? "enabled" : "disabled"));
+    server.log("Setting device-side debug messages " + (state ? "on" : "off"));
 }
 
-function setAlarm(alarmTime) {
-    // Program an alarm **** EXPERIMENTAL ****
+function setDefaultPrefs() {
+    // Initialise the clock's local preferences store
+    settings = {};
+    settings.on <- true;
+    settings.mode <- true;
+    settings.bst <- true;
+    settings.colon <- true;
+    settings.flash <- true;
+    settings.brightness <- 15;
+    settings.utc <- false;
+    settings.offset <- 0;
+    settings.alarms <- [];
+    settings.timer <- { "on"  : { "hour" : 7,  "min" : 00 }, 
+                        "off" : { "hour" : 22, "min" : 30 },
+                        "isset" : false };
 }
 
-function setPrefs(prefsTable) {
-    // Parse the set-up data table provided by the agent
-    if (debug) server.log("Preferences received from agent");
-
-    // Set the debug state
-    if ("debug" in prefsTable) setDebug(prefsTable.debug);
-
-    settings.hrmode = prefsTable.hrmode;
-    settings.bst = prefsTable.bst;
-    settings.flash = prefsTable.flash;
-    settings.colon = prefsTable.colon;
-    settings.utc = prefsTable.utc;
-    settings.offset = prefsTable.offset;
-
-    // Set the display state
-    settings.on = prefsTable.on;
-    setLight(settings.on);
-
-    // Set the brightness
-    if (settings.brightness != prefsTable.brightness) {
-        settings.brightness = prefsTable.brightness;
-        if (settings.on) display.setBrightness(prefsTable.brightness);
-    }
-
-    // Start the clock
-    if (tickTimer == null) clockTick();
-
-    // Clear the local list of alarms
-    if (alarms != null) alarms = null;
-    alarms = prefsTable.alarms;
-}
-
-
-// CONNECTIVITY FUNCTIONS
-// Set up connectivity policy — this should come as early in the code as possible
-function discHandler(event) {
-    if ("message" in event) server.log(event.message);
-    if ("type" in event) discFlag = (event.type == "connected") ? false : true;
-}
 
 // ALARM FUNCTONS
+function checkAlarms() {
+    // Do we need to display an alarm screen flash? **** EXPERIMENTAL ****
+    if (alarms.len() > 0) {
+        foreach (alarm in alarms) {
+            if (alarm.hour == hours && alarm.min == minutes) {
+                if (!alarm.on && !alarm.done) {
+                    if (debug) server.log("Alarm triggered");
+                    alarmState = 1;
+                    alarm.offmins = alarm.min + ALARM_DURATION;
+                    alarm.offhour = alarm.hour
+                    if (alarm.offmins > 59) {
+                        alarm.offmins = 60 - alarm.offmins;
+                        alarm.offhour++;
+                        if (alarm.offhour > 23) alarm.offhour = 24 - alarm.offhour;
+                    }
+
+                    alarm.on = true;
+                }
+            }
+
+            if (alarm.offhour == hours && alarm.offmins == minutes) {
+                alarmState = -1;
+                if (debug) server.log("Alarm stopped");
+                if (!alarm.repeat) alarm.done = true;
+            }
+        }
+
+        local i = 0;
+        local flag = false;
+        while (i < alarms.len()) {
+            local alarm = alarms[i];
+            if (alarm.done == true) {
+                flag = true;
+                alarms.remove(i);
+                if (debug) server.log("Alarm deleted");
+            } else {
+                i++;
+            }
+        }
+
+        if (flag) agent.send("update.alarms", alarms);
+    }
+}
+
 // Sort the alarms into order
 function sortAlarms() {
     alarms.sort(function(a, b) {
@@ -340,7 +366,6 @@ function sortAlarms() {
     });
 }
 
-
 function sortFunction(first, second) {
   local tab = {"one" : 1, "two" : 2, "three" : 3, "four" : 4, "five" : 5};
 	
@@ -353,45 +378,7 @@ function sortFunction(first, second) {
   return 0;
 }
 
-// START OF PROGRAM
-
-// Register the WiFi disconnection handler
-disconnectionManager.eventCallback = discHandler;
-disconnectionManager.start();
-
-// Configure the display
-hardware.i2c12.configure(CLOCK_SPEED_400_KHZ);
-display = HT16K33Segment(hardware.i2c12, 0x70);
-display.init();
-
-// Display the inital text, 'sync'
-// This will appear until the device receives settings from the agent
-syncText();
-
-// Initialise the clock's local preferences store
-settings = {};
-settings.hrmode <- true;
-settings.bst <- true;
-settings.utc <- false;
-settings.flash <- true;
-settings.colon <- true;
-settings.on <- true;
-settings.brightness <- 15;
-settings.offset <- 0;
-settings.alarms <- [];
-
-// Set up Agent notification response triggers
-agent.on("clock.set.prefs", setPrefs);
-agent.on("clock.switch.mode", switchMode);
-agent.on("clock.switch.bst", setBST);
-agent.on("clock.set.utc", setUTC);
-agent.on("clock.set.brightness", setBright);
-agent.on("clock.switch.flash", setFlash);
-agent.on("clock.switch.colon", setColon);
-agent.on("clock.set.light", setLight);
-agent.on("clock.set.debug", setDebug);
-
-agent.on("clock.set.alarm", function(newAlarm) {
+function setAlarm(newAlarm) {
     if (alarms.len() > 0) {
         foreach (alarm in alarms) {
             if (alarm.hour == newAlarm.hour && alarm.min == newAlarm.min) {
@@ -413,26 +400,108 @@ agent.on("clock.set.alarm", function(newAlarm) {
     sortAlarms();
     if (debug) server.log("Alarm set (" + alarms.len() + ")");
     agent.send("update.alarms", alarms);
-});
+}
 
-agent.on("clock.clear.alarm", function(index) {
+function clearAlarm(index) {
     if (!(index > alarms.len() - 1)) alarms.remove(index);
     if (debug) server.log("Alarm removed (" + alarms.len() + ")");
     agent.send("update.alarms", alarms);
-});
+}
 
-agent.on("clock.stop.alarm", function(dummy) {
+function stopAlarm(ignored) {
     // Run through each alarm and mark it done
     if (alarms.len() > 0) {
         foreach (alarm in alarms) {
             if ("on" in alarm) {
                 alarm.done = true;
-                alarmFlag = -1;
+                alarmState = -1;
             }
         }
     }
+}
+
+
+// OFFLINE OPERATION FUNCTIONS
+function discHandler(event) {
+    // Called if the server connection is broken or re-established
+    if ("message" in event) server.log("Connection Manager: " + event.message + " @ " + event.ts.tostring());
+
+    if ("type" in event) {
+        if (event.type == "disconnected") {
+            isDisconnected = true;
+            isConnecting = false;
+            disTime = event.ts;
+        }
+
+        if (event.type == "connecting") isConnecting = true;
+
+        if (event.type == "connected") {
+            // Check for settings changes
+            agent.send("clock.get.prefs", 1);
+            isDisconnected = false;
+            isConnecting = false;
+            
+            if (disTime != 0) {
+                local delta = event.ts - disTime;
+                if (debug) server.log("Disconnection duration: " + delta + " seconds");
+                disTime = 0;
+            }
+        }
+    }
+}
+
+
+// START OF PROGRAM
+
+// Load in generic boot message code
+#include "../generic/bootmessage.nut"
+
+// Load in default prefs
+setDefaultPrefs();
+
+// Set up the network disconnection handler
+disconnectionManager.eventCallback = discHandler;
+disconnectionManager.reconnectDelay = DISCONNECT_TIMEOUT;
+disconnectionManager.reconnectTimeout = RECONNECT_TIMEOUT;
+disconnectionManager.start();
+
+// Configure the display bus
+hardware.i2c12.configure(CLOCK_SPEED_400_KHZ);
+
+// Set up the clock display
+display = HT16K33Segment(hardware.i2c12, 0x70);
+display.init();
+
+// Show the ‘sync’ message then give the text no more than
+// 30 seconds to appear. If the prefs data comes from the
+// agent before then, the text will automatically be cleared
+// (and the timer cancelled)
+syncText();
+syncTimer = imp.wakeup(30.0, clockTick);
+
+// Set up Agent notification response triggers
+// First, settings-related actions
+agent.on("clock.set.prefs", setPrefs);
+agent.on("clock.set.bst", setBST);
+agent.on("clock.set.mode", setMode);
+agent.on("clock.set.utc", setUTC);
+agent.on("clock.set.brightness", setBright);
+agent.on("clock.set.flash", setFlash);
+agent.on("clock.set.colon", setColon);
+agent.on("clock.set.light", setLight);
+agent.on("clock.set.debug", setDebug);
+agent.on("clock.set.alarm", setAlarm);
+agent.on("clock.clear.alarm", clearAlarm);
+agent.on("clock.stop.alarm", stopAlarm);
+//agent.on("clock.set.nightmode", setNight);
+//agent.on("clock.set.nighttime", setNightTime);
+
+// Next, other actions
+agent.on("clock.do.reboot", function(dummy) {
+    imp.reset();
 });
 
-// Request preferences from server
-agent.send("clock.get.prefs", true);
-if (debug) server.log("Requesting preferences from agent");
+// Get preferences from server
+// NOTE no longer need this here as it's handled via DisconnectManager
+// agent.send("clock.get.prefs", true);
+// if (debug) server.log("Requesting preferences from agent");
