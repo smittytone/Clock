@@ -3,7 +3,7 @@
 
 // IMPORTS
 // NOTE If you're not using Squinter or an equivalent tool,
-// cut and paste the named library's code over the following line
+// cut and paste the named library's code in place of the appropriate line
 #import "../HT16K33Segment/HT16K33Segment.class.nut"
 #import "../generic/utilities.nut"
 #import "../generic/disconnect.nut"
@@ -454,6 +454,8 @@ function discHandler(event) {
 // START OF PROGRAM
 
 // Load in generic boot message code
+// NOTE If you're not using Squinter or an equivalent tool,
+// cut and paste bootmessage.nut's code in place of the following line
 #include "../generic/bootmessage.nut"
 
 // Load in default prefs
