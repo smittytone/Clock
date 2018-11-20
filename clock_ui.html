@@ -155,7 +155,7 @@
         getState(updateReadout);
 
         // Begin the online status update loop
-        var stateTimer = setInterval(checkState, 120000);
+        var stateTimer = setInterval(checkState, 20000);
 
         // Set UI click actions: Checkboxes
         $('#mode').click(setMode);
@@ -274,13 +274,18 @@
             // Request the current settings to extract the device's online state
             // NOTE This is called periodically via a timer (stateTimer)
             $.ajax({
-                url : agenturl + '/settings',
+                url : agenturl + '/status',
                 type: 'GET',
                 success : function(response) {
                     var j = JSON.parse(response);
-                    if ('isconnected' in j) {
-                        showState(j['isconnected']);
+                    if ('connected' in j) {
+                        // Update the clock state
+                        showState(j['connected']);
                     };
+                    if ('force' in j) {
+                        // Force a UI update
+                        getState(updateReadout);
+                    }
                 },
                 error : function(xhr, textStatus, error) {
                     if (error) {

@@ -20,6 +20,7 @@ const HTML_STRING = @"
 local prefs = null;
 local api = null;
 local debug = false;
+local stateUpdate = false;
 local alarms = [];
 
 // FUNCTIONS
@@ -162,6 +163,7 @@ device.on("clock.get.prefs", function(dummy) {
 // TODO Persist this data
 device.on("update.alarms", function(new) {
     alarms = new;
+    stateUpdate = true;
 });
 
 // Set up the web API
@@ -185,7 +187,18 @@ api.get("/", function(context) {
 
     ** Actions **
         POST /actions <- JSON, action type, eg. reset, plus binary switches
+
+    ** Status **
+        GET /status -> JSON, connection state + should UI force an update
 */
+
+api.get("/status", function(context) {
+    // A GET request made to /settings, so return the clock settings
+    local response = { "connected" : device.isconnected() };
+    if (stateUpdate) response.force <- true;
+    context.send(200, http.jsonencode(response, {"compact":true}));
+    stateUpdate = false;
+});
 
 api.get("/settings", function(context) {
     // A GET request made to /settings, so return the clock settings
@@ -195,7 +208,7 @@ api.get("/settings", function(context) {
 api.post("/settings", function(context) {
     // A POST request made to /settings, so apply the requested setting
     try {
-        server.log(context.req.rawbody);
+        if (debug) server.log(context.req.rawbody);
         local data = http.jsondecode(context.req.rawbody);
         local error = null;
 
