@@ -166,7 +166,7 @@
         $('#debug').click(setDebug);
 
         // Buttons
-        $('#reset').click(reset);
+        $('#reset').click(doReset);
         $('#onoff').click(setLight);
         $('#setalarm').click(setAlarm);
 
@@ -274,9 +274,10 @@
             // Request the current settings to extract the device's online state
             // NOTE This is called periodically via a timer (stateTimer)
             $.ajax({
-                url : agenturl + '/status',
+                url: agenturl + '/status',
                 type: 'GET',
-                success : function(response) {
+                cache: false,
+                success: function(response) {
                     var j = JSON.parse(response);
                     if ('connected' in j) {
                         // Update the clock state
@@ -287,130 +288,67 @@
                         getState(updateReadout);
                     }
                 },
-                error : function(xhr, textStatus, error) {
+                error: function(xhr, textStatus, error) {
                     if (error) {
                         $('.clock-status span').text(error);
                     }
-                },
-                cache: false
+                }
             });
         }
 
         function getState(callback) {
             // Request the current settings
             $.ajax({
-                url : agenturl + '/settings',
+                url: agenturl + '/settings',
                 type: 'GET',
-                success : function(response) {
+                cache: false,
+                success: function(response) {
                     if (callback) {
                         callback(response);
                     }
                 },
-                error : function(xhr, textStatus, error) {
+                error: function(xhr, textStatus, error) {
                     if (error) {
                         $('.clock-status span').text(error);
                     }
-                },
-                cache: false
+                }
             });
         }
-
+        
+        
         function setMode() {
-            updateSettings({ 'mode' : ((document.getElementById('mode').checked == true) ? 'true' : 'false') });
+            updateSettings({'mode':((document.getElementById('mode').checked == true) ? 'true' : 'false')});
         }
 
         function setBST() {
-            updateSettings({ 'bst' : ((document.getElementById('bst').checked == true) ? 'true' : 'false') });
+            updateSettings({'bst':((document.getElementById('bst').checked == true) ? 'true' : 'false')});
         }
 
         function setColon() {
-            updateSettings({ 'colon' : ((document.getElementById('seconds').checked == true) ? 'true' : 'false') });
+            updateSettings({'colon':((document.getElementById('seconds').checked == true) ? 'true' : 'false')});
         }
 
         function setFlash() {
-            updateSettings({ 'flash' : ((document.getElementById('flash').checked == true) ? 'true' : 'false') });
+            updateSettings({ 'flash':((document.getElementById('flash').checked == true) ? 'true' : 'false')});
         }
 
         function setBrightness() {
-            updateSettings({ 'bright' : ($('#brightness').val()) });
+            updateSettings({'bright':$('#brightness').val()});
         }
 
         function setLight() {
             displayon = !displayon;
             $('.onoff-button button').text(displayon ? 'Turn Display Off' : 'Turn Display On');
-            updateSettings({ 'on' : (displayon ? 'true' : 'false') });
+            updateSettings({'on':(displayon ? 'true' : 'false')});
         }
 
         function setUTC() {
-           updateSettings({ 'world' : { 'utc' : ((document.getElementById('utc').checked == true) ? 'true' : 'false'), 'offset' : $('#utcs').val() }});
+            updateSettings({'world':{'utc':((document.getElementById('utc').checked == true) ? 'true' : 'false'), 'offset':$('#utcs').val()}});
         }
         
         function updateSettings(data) {
             // Generic function to update a setting
-            $.ajax({
-                url : agenturl + '/settings',
-                type: 'POST',
-                data: JSON.stringify(data),
-                success : function(response) {
-                    // Get updated settings to refresh the UI 
-                    getState(updateReadout);
-                },
-                error : function(xhr, textStatus, error) {
-                    if (error) {
-                        $('.clock-status span').text(error);
-                    }
-                },
-                cache: false
-            });
-        }
-
-        function reset() {
-            // Trigger a settings reset
-            $.ajax({
-                url : agenturl + '/action',
-                type: 'POST',
-                data: JSON.stringify({ 'action' : 'reset' }),
-                success : function(response) {
-                    // Get updated settings to refresh the UI 
-                    getState(updateReadout);
-                },
-                cache: false
-            });
-        }
-
-        function setDebug() {
-            // Tell the device to enter or leave debug mode
-            var d = document.getElementById('debug').checked;
-            $.ajax({
-                url : agenturl + '/action',
-                type: 'POST',
-                data: JSON.stringify({ 'action' : 'debug', 'debug' :  d}),
-                error : function(xhr, textStatus, error) {
-                    if (error) {
-                        $('.clock-status span').text(error);
-                    }
-                },
-                cache: false
-            });
-        }
-
-        function reboot() {
-            // Trigger a device restart
-            $.ajax({
-                url : agenturl + '/action',
-                type: 'POST',
-                data: JSON.stringify({ 'action' : 'reboot' }),
-                success : function(response) {
-                    // Get updated settings to refresh the UI
-                    getState(updateReadout);
-                },
-                error : function(xhr, textStatus, error) {
-                    if (error) {
-                        $('.clock-status span').text(error);
-                    }
-                },
-                cache: false
-            });
+            send(data, '/settings');
         }
 
         function setAlarm() {
@@ -418,47 +356,53 @@
             let h = document.getElementById('enter-hour').value;
             let m = document.getElementById('enter-min').value;
             var d = document.getElementById('repeat').checked == true ? 'true' : 'false';
-            let adata = { 'action' : 'add',
-                          'hour' : h,
-                          'min' : m,
-                          'repeat' : d };
-            $.ajax({
-                url : agenturl + '/settings',
-                type: 'POST',
-                data: JSON.stringify({'alarm' : adata}),
-                success : function(response) {
-                    // Get updated settings to refresh the UI
-                    getState(updateReadout);
-                },
-                error : function(xhr, textStatus, error) {
-                    if (error) {
-                        $('.clock-status span').text(error);
-                    }
-                },
-                cache: false
-            });
+            let alarmData = {'action':'add', 'hour':h, 'min':m, 'repeat':d};
+            send({'alarm':alarmData}, '/settings');
         }
 
         function deleteAlarm() {
             // Delete an alarm based on its index within the array used to generate the table.
             // Each button's id is set to 'deleteAlarm' plus the array index as a string
             let s = this.id.substring(11);
-            let adata = { 'action' : 'delete',
-                          'index' : s };
+            let alarmData = {'action':'delete', 'index':s};
+            send({'alarm':alarmData}, '/settings');
+        }
+
+        function doReset() {
+            // Trigger a settings reset
+            doAction({'action':'reset'});
+        }
+        
+        function doReboot() {
+            // Trigger a device restart
+            doAction({'action':'reboot'});
+        }
+
+        function setDebug() {
+            // Tell the device to enter or leave debug mode
+            var d = document.getElementById('debug').checked;
+            doAction({'action':'debug', 'debug': d});
+        }
+
+        function doAction(action) {
+            send(action, '/action');
+        }
+
+        function send(data, path) {
             $.ajax({
-                url : agenturl + '/settings',
+                url: agenturl + path,
                 type: 'POST',
-                data: JSON.stringify({'alarm' : adata}),
-                success : function(response) {
-                    // Get updated settings to refresh the UI
+                data: JSON.stringify(data),
+                cache: false,
+                success: function(response) {
+                    // Get updated settings to refresh the UI 
                     getState(updateReadout);
                 },
-                error : function(xhr, textStatus, error) {
+                error: function(xhr, textStatus, error) {
                     if (error) {
                         $('.clock-status span').text(error);
                     }
-                },
-                cache: false
+                }
             });
         }
     </script>
