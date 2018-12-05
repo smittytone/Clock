@@ -175,7 +175,9 @@ function syncText() {
     // Display 'SYNC' after the clock is powered up and until it receives its preferences from the agent
     if (!settings.on) return;
     local letters = [0x6D, 0x6E, 0x00, 0x37, 0x39];
-    foreach (index, char in letters) display.writeGlyph(index, char, false);
+    foreach (index, char in letters) {
+        if (index != 2) display.writeGlyph(index, char, false);
+    }
     display.updateDisplay();
 }
 
