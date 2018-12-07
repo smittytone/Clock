@@ -122,7 +122,7 @@ function setPrefs() {
     prefs.offset <- 0;      // GMT offset (-12 to +12)
     prefs.flash <- true;    // true/false for colon flashing or static
     prefs.colon <- true;    // true/false for colon visible or not
-    prefs.brightness <- 15; // 1 to 15 for boot-set LED brightness
+    prefs.brightness <- 15; // 0 to 15 for boot-set LED brightness
     prefs.on <- true;       // true/false for whether the clock LED is lit
     prefs.debug <- debug;   // true/false for whether the clock is in debug mode
     prefs.alarms <- [];     // array of alarm times
