@@ -65,46 +65,47 @@
             <div class='row'>
                 <div class='col-2'>&nbsp;</div>
                 <div class='col-8'>
-                    <h4 align='center'>Time Settings</h4>
+                    <h4 align='center'>General Settings</h4>
                     <label class='checkarea'> 24-Hour Mode (Switch off for AM/PM)
                         <input type='checkbox' name='mode' id='mode' value='mode'><span class='checkmark' /></span>
                     </label>
-                    <label class='checkarea'> Apply Daylight Savings Time Automatically
-                        <input type='checkbox' name='bst' id='bst' value='bst'><span class='checkmark' /></span>
-                    </label>
-                    <p class='subhead text-center'>World Time</p>
-                    <label class='checkarea utc-checkbox'> Show World Time
-                        <input type='checkbox' name='utc' id='utc' value='utc'><span class='checkmark' /></span>
-                    </label>
-                    <input type='range' class='slider' name='utcs' id='utcs' value='0' min='0' max='24' />
-                    <table width='100%%'>
-                        <tr>
-                            <td width='30%%' align='left'><small>-12</small></td>
-                            <td width='40%%' align='center'><small>0</small></td>
-                            <td width='30%%' align='right'><small>+12</small></td>
-                        </tr>
-                    </table>
-                    <p class='utc-status subslider' align='right'>Offset from local time: <span></span> hours</p>
-                    <h4 align='center'>Display Settings</h4>
                     <label class='checkarea'> Show Seconds Indicator
                         <input type='checkbox' name='seconds' id='seconds' value='seconds'><span class='checkmark' /></span>
                     </label>
                     <label class='checkarea'> Flash Seconds Indicator
                         <input type='checkbox' name='flash' id='flash' value='seconds'><span class='checkmark' /></span>
                     </label>
-                    <p class='subhead text-center'>Brightness</p>
-                    <input type='range' class='slider' name='brightness' id='brightness' value='16' min='1' max='16' />
-                    <table width='100%%'>
-                        <tr>
-                            <td width='50%%' align='left'><small>Low</small></td>
-                            <td width='50%%' align='right'><small>High</small></td>
-                        </tr>
-                    </table>
-                    <p class='brightness-status subslider' align='right'>Current brightness: <span></span><br />&nbsp;</p>
+                    <label class='checkarea utc-checkbox'> Show World Time
+                        <input type='checkbox' name='utc' id='utc' value='utc'><span class='checkmark' /></span>
+                    </label>
+                    <label class='checkarea'> Use Night Mode (Turns the display off between the times set below)
+                        <input type='checkbox' name='night' id='night' value='night'><span class='checkmark'></span>
+                    </label>
                     <div class='onoff-button' align='center'>
                         <button class='btn btn-light' type='submit' id='onoff' style='width:200px'>Turn Display Off</button>
                     </div>
-                    <p>&nbsp;</p>
+                    <hr />
+                    <p class='subhead text-center'>Clock Brightness</p>
+                    <input type='range' class='slider' name='brightness' id='brightness' value='16' min='1' max='16' />
+                    <table width='100%%'>
+                        <tr>
+                            <td width='20%%' align='left'><div class='biconlow'><span></span></div></td>
+                            <td width='60%%' align='center'><div class='brightness-status subslider'>Brightness: <span></span></div></td>
+                            <td width='20%%' align='right'><div class='biconhih'><span></span></div></td>
+                        </tr>
+                    </table>
+                    <hr />
+                    <p class='utc-head subhead text-center'>World Time (<span>Disabled</span>)</p>
+                    <input type='range' class='slider' name='utcs' id='utcs' value='0' min='0' max='24' />
+                    <table width='100%%'>
+                        <tr>
+                            <td width='20%%' align='left'><small>-12</small></td>
+                            <td width='60%%' align='center'><div class='utc-status subslider'><small>Offset from local time: <span></span> hours</small></div></td>
+                            <td width='20%%' align='right'><small>+12</small></td>
+                        </tr>
+                    </table>
+                    <p align='center'><small><i>When world time is displayed, daylight saving is not enabled</i></small></p>
+                    <hr />
                     <div align='center'>
                         <h4>Alarms</h4>
                         <p class='alarm-list'><span></span></p>
@@ -121,6 +122,9 @@
                         <p class='showhide text-center' style='line-height:36px;color:black;'>Advanced Settings</p>
                         <div class='advanced' align='center'>
                             <br />
+                            <div class='debug-checkbox' style='color:black;'>
+                                <input type='checkbox' name='bst' id='bst' value='bast' /> Apply Daylight Savings Automatically
+                            </div>
                             <div class='debug-checkbox' style='color:black;'>
                                 <input type='checkbox' name='debug' id='debug' value='debug' /> Debug Mode
                             </div>
@@ -145,11 +149,14 @@
 
     <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js'></script>
     <script>
-        $('.advanced').hide();
-
         // Variables
         var agenturl = '%s';
         var displayon = true;
+
+        // Set images
+        $('.biconlow span').html('<img src=""' + agenturl + '/images/low.png' + '"" width=""20"" />');
+        $('.biconhih span').html('<img src=""' + agenturl + '/images/high.png' + '"" width=""20"" />');
+        $('.advanced').hide();
 
         // Get initial readings
         getState(updateReadout);
@@ -164,6 +171,7 @@
         $('#flash').click(setFlash);
         $('#utc').click(setUTC);
         $('#debug').click(setDebug);
+        $('#night').click(setNight);
 
         // Buttons
         $('#reset').click(doReset);
@@ -217,6 +225,7 @@
             var u = parseInt(s['world']['offset']);
             $('.utc-status span').text(u - 12);
             $('#utcs').val(u);
+            $('.utc-head span').text(s['world']['utc'] ? 'Enabled' : 'Disabled');
 
             // Set the title of the display on/off button
             $('#onoff').text(s['on'] ? 'Turn Display Off' : 'Turn Display On');
@@ -289,9 +298,7 @@
                     }
                 },
                 error: function(xhr, textStatus, error) {
-                    if (error) {
-                        $('.clock-status span').text(error);
-                    }
+                    if (error) $('.clock-status span').text(error);
                 }
             });
         }
@@ -303,47 +310,47 @@
                 type: 'GET',
                 cache: false,
                 success: function(response) {
-                    if (callback) {
-                        callback(response);
-                    }
+                    if (callback) callback(response);
                 },
                 error: function(xhr, textStatus, error) {
-                    if (error) {
-                        $('.clock-status span').text(error);
-                    }
+                    if (error) $('.clock-status span').text(error);
                 }
             });
         }
         
         
         function setMode() {
-            updateSettings({'mode':((document.getElementById('mode').checked == true) ? 'true' : 'false')});
+            updateSettings({'setmode':document.getElementById('mode').checked});
         }
 
         function setBST() {
-            updateSettings({'bst':((document.getElementById('bst').checked == true) ? 'true' : 'false')});
+            updateSettings({'setbst':document.getElementById('bst').checked});
         }
 
         function setColon() {
-            updateSettings({'colon':((document.getElementById('seconds').checked == true) ? 'true' : 'false')});
+            updateSettings({'setcolon':document.getElementById('seconds').checked});
         }
 
         function setFlash() {
-            updateSettings({ 'flash':((document.getElementById('flash').checked == true) ? 'true' : 'false')});
+            updateSettings({ 'setflash':document.getElementById('flash').checked});
         }
 
         function setBrightness() {
-            updateSettings({'bright':$('#brightness').val() - 1});
+            updateSettings({'setbright':$('#brightness').val() - 1});
+        }
+
+        function setNight() {
+            updateSettings({'setnight':document.getElementById('night').checked});
         }
 
         function setLight() {
             displayon = !displayon;
             $('.onoff-button button').text(displayon ? 'Turn Display Off' : 'Turn Display On');
-            updateSettings({'on':(displayon ? 'true' : 'false')});
+            updateSettings({'setlight':displayon});
         }
 
         function setUTC() {
-            updateSettings({'world':{'utc':((document.getElementById('utc').checked == true) ? 'true' : 'false'), 'offset':$('#utcs').val()}});
+            updateSettings({'setutc':{'state':document.getElementById('utc').checked, 'offset':$('#utcs').val()}});
         }
         
         function updateSettings(data) {
@@ -355,9 +362,9 @@
             // Set an alarm, using the data entered into the UI
             let h = document.getElementById('enter-hour').value;
             let m = document.getElementById('enter-min').value;
-            var d = document.getElementById('repeat').checked == true ? 'true' : 'false';
+            let d = document.getElementById('repeat').checked;
             let alarmData = {'action':'add', 'hour':h, 'min':m, 'repeat':d};
-            send({'alarm':alarmData}, '/settings');
+            send({'setalarm':alarmData}, '/settings');
         }
 
         function deleteAlarm() {
@@ -380,8 +387,7 @@
 
         function setDebug() {
             // Tell the device to enter or leave debug mode
-            var d = document.getElementById('debug').checked;
-            doAction({'action':'debug', 'debug': d});
+            doAction({'action':'debug', 'debug': document.getElementById('debug').checked});
         }
 
         function doAction(action) {
@@ -399,9 +405,7 @@
                     getState(updateReadout);
                 },
                 error: function(xhr, textStatus, error) {
-                    if (error) {
-                        $('.clock-status span').text(error);
-                    }
+                    if (error)$('.clock-status span').text(error);
                 }
             });
         }
