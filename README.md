@@ -63,4 +63,4 @@ Visit your cløck’s agent URL for a control interface.
 
 ## Licence ##
 
-The cløck design and software is copyright &copy; 2014-18 by Tony Smith. It is made available under the [MIT Licence](./LICENSE).
+The cløck design and software is copyright &copy; 2014-19 by Tony Smith. It is made available under the [MIT Licence](./LICENSE).
