@@ -2,7 +2,7 @@
 // Copyright 2014-18, Tony Smith
 
 // IMPORTS
-#require "Rocky.class.nut:2.0.1"
+#require "Rocky.class.nut:2.0.2"
 
 // CONSTANTS
 const APP_CODE = "B14E7692-6D05-4AC6-B66A-AB40C98E3D5B";
