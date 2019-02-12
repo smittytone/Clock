@@ -44,6 +44,7 @@ Visit your cløck’s agent URL for a control interface.
 - 2.1.0 &mdash; *Unreleased*
     - Add night mode
     - Revise alarms code
+    - Update dependencies (Bootstrap 4.3.0; Rocky 2.0.0; HT16K33Segment 2.0.0)
 - 2.0.0 &mdash; *1 November 2018*
     - Update to [Bootstrap 4.1.3](https://getbootstrap.com/)
     - Completely redesign agent API

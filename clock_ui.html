@@ -107,6 +107,48 @@
                         </table>
                         <p align='center'><small><i>When world time is displayed, daylight saving is not enabled</i></small></p>
                         <hr />
+                        <!-- Night mode time text fields -->
+                        <div>
+                            <p class='night-mode-head subhead text-center'>Night Mode (<span>Disabled</span>)</p>
+                            <div class='form-row'>
+                                <label for='colFormLabel' class='col-4 col-form-label' align='right' style='color:white'>&nbsp;</label>
+                                <label for='colFormLabel' class='col-3 col-form-label' align='center' style='color:white'>Hour</label>
+                                <label for='colFormLabel' class='col-3 col-form-label' align='center' style='color:white'>Min</label>
+                                <label for='colFormLabel' class='col-1 col-form-label' align='left' style='color:white'>&nbsp;</label>
+                                <label for='colFormLabel' class='col-1 col-form-label' align='left' style='color:white'>&nbsp;</label>
+                            </div>
+                            <div class='form-row'>
+                                <div class='col-4' align='right'>
+                                    <label class='col-form-label' style='color:white'>Start&nbsp;Time</label>
+                                </div>
+                                <div class='col-3' align='center'>
+                                    <input type='text' class='form-control form-control-sm' id='dimmerstarthour' min='0' max='22' style='color:black' placeholder='23'>
+                                </div>
+                                <div class='col-3' align='center'>
+                                    <input type='text' class='form-control form-control-sm' id='dimmerstartmin' min='0' max='59' style='color:black' placeholder='00'>
+                                </div>
+                                <div class='col-1' align='left'>&nbsp;</div>
+                                <div class='col-1' align='left'>&nbsp;</div>
+                            </div>
+                            <div class='form-row'>
+                                <div class='col-4' align='right'>
+                                    <label class='col-form-label' style='color:white'>End&nbsp;Time</label>
+                                </div>
+                                <div class='col-3' align='center'>
+                                    <input type='text' class='form-control form-control-sm' id='dimmerendhour' min='1' max='23' style='color:black' placeholder='7'>
+                                </div>
+                                <div class='col-3' align='center'>
+                                    <input type='text' class='form-control form-control-sm' id='dimmerendmin' min='0' max='59' style='color:black' placeholder='00'>
+                                </div>
+                                <div class='col-1' align='left'>&nbsp;</div>
+                                <div class='col-1' align='left'>&nbsp;</div>
+                            </div>
+                            <p style='font-size: 0.8em;line-height: 3em;' align='center'><i>Please set the on and off times in the 24-hour clock format</i></p>
+                            <div align='center'>
+                                <button class='btn btn-light' type='submit' id='dimmer' style='width:200px'>Set Night Mode Times</button>
+                            </div>
+                        </div>
+                        <hr />
                         <div align='center'>
                             <h4>Alarms</h4>
                             <p class='alarm-list'><span></span></p>
@@ -160,6 +202,10 @@
         $('.biconhih span').html('<img src=""' + agenturl + '/images/high.png' + '"" width=""20"" />');
         $('.advanced').hide();
 
+        // Reset text fields
+        resetDimmerFields(15);
+        resetAlarmFields(3);
+
         // Get initial readings
         getState(updateReadout);
 
@@ -173,7 +219,8 @@
         $('#flash').click(setFlash);
         $('#utc').click(setUTC);
         $('#debug').click(setDebug);
-        $('#night').click(setNight);
+        $('#night').click(setNightMode);
+        $('#dimmer').click(setNightTimes);
 
         // Buttons
         $('#reset').click(doReset);
@@ -222,7 +269,8 @@
             document.getElementById('flash').checked = s['flash'];
             document.getElementById('utc').checked = s['world']['utc'];
             document.getElementById('debug').checked = s['debug'];
-            
+            document.getElementById('night').checked = s['timer']['isset'];
+
             // Set the world time offset slider
             var u = parseInt(s['world']['offset']);
             $('.utc-status span').text(u - 12);
@@ -238,6 +286,17 @@
             $('.brightness-status span').text(b);
             $('#brightness').val(b);
 
+            // Set the nighttime dimmer times
+            u = parseInt(s['timer']['on']['hour']);
+            $('#dimmerstarthour').val(u);
+            u = parseInt(s['timer']['on']['min']);
+            $('#dimmerstartmin').val(u);
+            u = parseInt(s['timer']['off']['hour']);
+            $('#dimmerendhour').val(u);
+            u = parseInt(s['timer']['off']['min']);
+            $('#dimmerendmin').val(u);
+            $('.night-mode-head span').text(s['timer']['isset'] ? 'Enabled' : 'Disabled');
+            
             // Set the line indicating whether the clock is connected to the server or not
             showState(s['isconnected']);
 
@@ -285,6 +344,18 @@
                     document.getElementById(s).onclick = silenceAlarm;
                 }
             }
+        }
+
+        function resetAlarmFields(f) {
+            if (f & 1 > 0) $('#enter-hour').val($('#enter-hour').attr('placeholder'));
+            if (f & 2 > 0) $('#enter-min').val($('#enter-min').attr('placeholder'));
+        }
+
+        function resetDimmerFields(f) {
+            if (f & 1 > 0) $('#dimmerstarthour').val($('#dimmerstarthour').attr('placeholder'));
+            if (f & 2 > 0) $('#dimmerstartmin').val($('#dimmerstartmin').attr('placeholder'));
+            if (f & 4 > 0) $('#dimmerendhour').val($('#dimmerendhour').attr('placeholder'));
+            if (f & 8 > 0) $('#dimmerendmin').val($('#dimmerendmin').attr('placeholder'));
         }
 
         function checkState() {
@@ -347,7 +418,7 @@
             updateSettings({'setbright':$('#brightness').val()});
         }
 
-        function setNight() {
+        function setNightMode() {
             updateSettings({'setnight':document.getElementById('night').checked});
         }
 
@@ -361,6 +432,38 @@
             updateSettings({'setutc':{'state':document.getElementById('utc').checked, 'offset':$('#utcs').val()}});
         }
         
+        function setNightTimes(e){
+            // Set the night mode duration
+            e.preventDefault();
+            var sh = document.getElementById('dimmerstarthour').value;
+            var sm = document.getElementById('dimmerstartmin').value;
+            var eh = document.getElementById('dimmerendhour').value;
+            var em = document.getElementById('dimmerendmin').value;
+
+            if (sh < 0 || sh > 23) {
+                resetDimmerFields(1);
+                return;
+            }
+            
+            if (sm < 0 || sm > 59) {
+                resetDimmerFields(2);
+                return;
+            }
+
+            if (eh < 0 || eh > 23) {
+                resetDimmerFields(4);
+                return;
+            }
+            
+            if (em < 0 || em > 59) {
+                resetDimmerFields(8);
+                return;
+            }
+            
+            updateSettings({'setdimmer':{'dimmeron':{'hour':sh, 'min':sm},
+                                         'dimmeroff':{'hour':eh, 'min':em}}});
+        }
+
         function updateSettings(data) {
             // Generic function to update a setting
             send(data, '/settings');

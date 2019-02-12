@@ -154,12 +154,11 @@ function setDisplay(state) {
     // ADDED IN 2.1.0
     // Power up or power down the display according to the supplied state (true or false)
     if (state) {
-        powerUp();
+        display.powerUp();
         agent.send("display.state", { "on" : true, "advance" : isAdvanceSet });
         if (debug) server.log("Brightening display at " + format("%02i", hours) + ":" + format("%02i", minutes));
     } else {
-        clearDisplay();
-        powerDown();
+        display.powerDown();
         agent.send("display.state", { "on" : false, "advance" : isAdvanceSet });
         if (debug) server.log("Dimming display at " + format("%02i", hours) + ":" + format("%02i", minutes));
     }
@@ -508,6 +507,13 @@ function setNight(value) {
     // Disable the timer advance setting as it's only relevant if night mode is
     // on AND it has been triggered since night mode was enabled
     isAdvanceSet = false;
+
+    local should = shouldShowDisplay();
+    if (!should && !settings.timer.isset) {
+        // Change the state of the display
+        setDisplay(true);
+        settings.on = true;
+    }
 
     if (debug) server.log("Setting night mode " + (value ? "on" : "off"));
 }
