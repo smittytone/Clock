@@ -1,5 +1,5 @@
 // Clock
-// Copyright 2014-18, Tony Smith
+// Copyright 2014-19, Tony Smith
 
 // IMPORTS
 // NOTE If you're not using Squinter or an equivalent tool,
@@ -47,6 +47,10 @@ local tickFlag = true;
 local debug = true;
 
 // Alarms
+// 'alarmstate' has three possible values: 
+//    0 = Do nothing
+//   +1 = Start the screen flashing (there is an active alarm)
+//   -1 = Stop the screen flashing (there are no active alarms)
 local alarmState = 0;
 
 
@@ -69,7 +73,7 @@ function clockTick() {
     // Update the value of 'hours' to reflect displayed time
     if (settings.utc) {
         // If UTC is set, add the international time offset (-12 TO +12)
-        hours = hours + settings.offset;
+        hours = hours + settings.utcoffset;
         if (hours > 24) {
             hours = hours - 24;
         } else if (hours < 0) {
@@ -198,7 +202,7 @@ function setPrefs(prefsTable) {
     settings.flash = prefsTable.flash;
     settings.colon = prefsTable.colon;
     settings.utc = prefsTable.utc;
-    settings.offset = prefsTable.offset;
+    settings.utcoffset = prefsTable.utcoffset;
 
     // Set the display state
     if (settings.on != prefsTable.on) setLight(prefsTable.on);
@@ -212,8 +216,11 @@ function setPrefs(prefsTable) {
     }
 
     // Clear the local list of alarms
-    if (alarms != null) alarms = null;
-    alarms = prefsTable.alarms;
+    if (alarms != null) alarms = [];
+    if (prefsTable.alarms.len() > 0) {
+        foreach (alarm in prefsTable.alarms) setAlarm(alarm);
+        if (debug) server.log(alarms.len() + " alarms added");
+    }
 
     // Only call clockTick() if we have come here *before*
     // the main clock loop, which sets tickTimer, has started
@@ -236,14 +243,8 @@ function setBST(value) {
 
 function setUTC(value) {
     // This function is called when the app sets or unsets UTC
-    if (value == "N") {
-        // If 'value' is a string - and specifically "N" - it means 'disable UTC'
-        settings.utc = false;
-    } else {
-        // 'value' is the integer offset: -12 to 12
-        settings.utc = true;
-        settings.offset = value;
-    }
+    settings.utc = value.state;
+    settings.utcoffset = value.offset;
 }
 
 function setBright(brightness) {
@@ -302,7 +303,7 @@ function setDefaultPrefs() {
     settings.flash <- true;
     settings.brightness <- 15;
     settings.utc <- false;
-    settings.offset <- 0;
+    settings.utcoffset <- 0;
     settings.alarms <- [];
     settings.timer <- { "on"  : { "hour" : 7,  "min" : 00 }, 
                         "off" : { "hour" : 22, "min" : 30 },
@@ -312,7 +313,7 @@ function setDefaultPrefs() {
 
 // ALARM FUNCTONS
 function checkAlarms() {
-    // Do we need to display an alarm screen flash? **** EXPERIMENTAL ****
+    // Do we need to display an alarm screen flash?
     if (alarms.len() > 0) {
         foreach (alarm in alarms) {
             if (alarm.hour == hours && alarm.min == minutes) {
@@ -405,19 +406,24 @@ function setAlarm(newAlarm) {
 }
 
 function clearAlarm(index) {
-    if (!(index > alarms.len() - 1)) alarms.remove(index);
-    if (debug) server.log("Alarm removed (" + alarms.len() + ")");
+    // Delete the specified alarm
+    if (index < 0 || index > alarms.len() - 1) return;
+    local alarm = alarms[index];
+    if (alarm.on) stopAlarm(index);
+    alarms.remove(index);
+    if (debug) server.log("Alarm " + index + " removed (" + alarms.len() + " left)");
     agent.send("update.alarms", alarms);
 }
 
-function stopAlarm(ignored) {
-    // Run through each alarm and mark it done
+function stopAlarm(index) {
+    // Silence the specified alarm
     if (alarms.len() > 0) {
-        foreach (alarm in alarms) {
-            if ("on" in alarm) {
-                alarm.done = true;
-                alarmState = -1;
-            }
+        local alarm = alarms[index];
+        if (alarm.on) {
+            alarm.on = false;
+            if (!alarm.repeat) alarm.done = true;
+            if (debug) server.log("Alarm " + index + " silenced");
+            alarmState = -1;
         }
     }
 }

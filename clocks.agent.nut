@@ -1,5 +1,5 @@
 // Clock
-// Copyright 2014-18, Tony Smith
+// Copyright 2014-19, Tony Smith
 
 // IMPORTS
 #require "Rocky.class.nut:2.0.2"
@@ -7,6 +7,7 @@
 // CONSTANTS
 const APP_CODE = "B14E7692-6D05-4AC6-B66A-AB40C98E3D5B";
 const MAX_ALARMS = 8;
+const ALARM_DURATION = 2;
 // If you are NOT using Squinter or a similar tool, replace the following #import statements
 // with the contents of the named files (clock_ui.html, silence_img.nut and delete_img.nut)
 // Source code for these files here: https://github.com/smittytone/Clock
@@ -25,7 +26,6 @@ local prefs = null;
 local api = null;
 local debug = false;
 local stateUpdate = false;
-local alarms = [];
 
 // FUNCTIONS
 function sendPrefs() {
@@ -40,9 +40,11 @@ function encodePrefsForUI() {
                    "bst"         : prefs.bst,
                    "flash"       : prefs.flash,
                    "colon"       : prefs.colon,
-                   "bright"      : prefs.brightness,
+                   // Web UI expects brightness in range 1-16, so add 1 here (app range: 0 to 15)
+                   "bright"      : prefs.brightness + 1,
                    "world"       : { "utc"    : prefs.utc,
-                                     "offset" : prefs.offset + 12 },
+                   // Web UI expects offset in range 0-24, so add 12 here (app range: -12 to +12)
+                                     "offset" : prefs.utcoffset + 12 },
                    "on"          : prefs.on,
                    "debug"       : debug,
                    "isconnected" : device.isconnected(),
@@ -55,8 +57,8 @@ function encodePrefsForUI() {
                 };
     
     // Write in the alarms, if any
-    if (alarms.len() > 0) {
-        foreach (alarm in alarms) {
+    if (prefs.alarms.len() > 0) {
+        foreach (alarm in prefs.alarms) {
             data.alarms.append(alarm);
         }
     }
@@ -94,10 +96,10 @@ function setPrefs() {
     prefs.hrmode <- true;   // true/false for 24/12-hour view
     prefs.bst <- true;      // true for observing BST, false for GMT
     prefs.utc <- false;     // true/false for UTC set/unset
-    prefs.offset <- 0;      // GMT offset (-12 to +12)
+    prefs.utcoffset <- 0;   // GMT offset (-12 to +12)
     prefs.flash <- true;    // true/false for colon flashing or static
     prefs.colon <- true;    // true/false for colon visible or not
-    prefs.brightness <- 15; // 0 to 15 for boot-set LED brightness
+    prefs.brightness <- 7;  // 0 to 15 for boot-set LED brightness
     prefs.on <- true;       // true/false for whether the clock LED is lit
     prefs.debug <- debug;   // true/false for whether the clock is in debug mode
     prefs.alarms <- [];     // array of alarm times
@@ -160,8 +162,10 @@ device.on("clock.get.prefs", function(dummy) {
 // Update the list of alarms maintained by the agent
 // TODO Persist this data
 device.on("update.alarms", function(new) {
-    alarms = new;
+    prefs.alarms = new;
     stateUpdate = true;
+    if (debug) server.log("Alarm list updated: " + prefs.alarms.len() + " alarms left");
+    server.save(prefs);
 });
 
 // Set up the web API
@@ -287,7 +291,7 @@ api.post("/settings", function(context) {
                     break;
                 }
 
-                prefs.brightness = value;
+                prefs.brightness = value - 1;
                 if (debug) server.log(format("UI says set display brightness to %i", prefs.brightness));
                 device.send("clock.set.brightness", prefs.brightness);
             }
@@ -319,7 +323,7 @@ api.post("/settings", function(context) {
                         break;
                     }
 
-                    prefs.utcoffset = value.offset;
+                    prefs.utcoffset = value.offset - 12;
                 }
 
                 if (debug) server.log("UI says turn world time mode " + (prefs.utc ? "on" : "off") + ", offset: " + prefs.utcoffset);
@@ -542,18 +546,17 @@ api.post("/action", function(context) {
                 device.send("clock.set.prefs", prefs);
                 server.log("Clock settings reset");
                 context.send(200, http.jsonencode({"reset":true}));
-                if (server.save(prefs) != 0) server.error("Could not save clock settings after reset");
                 return;
             }
 
             if (data.action == "debug") {
                 // A DEBUG message sent
-                debug = (data.debug == "1") ? true : false;
+                debug = data.debug;
                 prefs.debug = debug;
                 device.send("clock.set.debug", debug);
                 server.log("Debug mode " + (debug ? "on" : "off"));
                 context.send(200, http.jsonencode({"debug":debug}));
-                if (server.save(prefs) > 0) server.error("Could not save debug setting");
+                server.save(prefs);
                 return;
             }
 
@@ -562,7 +565,7 @@ api.post("/action", function(context) {
                 prefs.utc = ! prefs.utc;
                 if (debug) server.log("World time switched " + (prefs.utc ? "on" : "off"));
                 context.send(200, http.jsonencode({"world":{"utc":prefs.utc}}));
-                if (server.save(prefs) > 0) server.error("Could not save debug setting");
+                erver.save(prefs);
                 return;
             }
         } else {

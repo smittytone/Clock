@@ -2,7 +2,7 @@
 <html lang='en'>
 <head>
     <title>cløck</title>
-    <link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css'>
+    <link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/4.3.0/css/bootstrap.min.css'>
     <link href='https://fonts.googleapis.com/css?family=Rubik|Michroma' rel='stylesheet'>
     <link rel='apple-touch-icon' href='https://smittytone.github.io/images/ati-clock.png'>
     <link rel='shortcut icon' href='https://smittytone.github.io/images/ico-clock.ico' />
@@ -43,105 +43,107 @@
         td {color: white; font-family: Michroma, sans-serif;}
 
         @media only screen and (max-width: 640px) {
-        .container {padding: 5px;}
-        .uicontent {border: 0px;}
-        .col-2 {max-width: 0%%; flex: 0 0 0%%;}
-        .col-8 {max-width: 100%%; flex: 0 0 100%%;}
+            .container {padding: 0px;width: 100%%; margin: 0%%;}
+            .uicontent {border: 0px;width: 100%%; margin: 0%%;}
+            .col-2 {max-width: 0%%; flex: 0 0 0%%;}
+            .col-8 {max-width: 100%%; flex: 0 0 100%%;}
         }
     </style>
 </head>
 <body>
     <div class='container'>
-        <div class='uicontent'>
-            <!-- Header Row -->
-            <div class='row' align='center'>
-                <div class='col'>
-                    <h2>CLØCK</h2>
-                    <h5>Your Digital Clock<br />&nbsp;</h5>
-                    <h5 class='clock-status'><i><span>This cløck is online</span></i></h5>
+        <div class='row uicontent' align='center'>
+            <div class='col'>
+                <!-- Header Row -->
+                <div class='row'>
+                    <div class='col'>
+                        <h2>CLØCK</h2>
+                        <h5>Your Digital Clock<br />&nbsp;</h5>
+                        <h5 class='clock-status'><i><span>This cløck is online</span></i></h5>
+                    </div>
                 </div>
-            </div>
-            <!-- Settings and Controls Row -->
-            <div class='row'>
-                <div class='col-2'>&nbsp;</div>
-                <div class='col-8'>
-                    <h4 align='center'>General Settings</h4>
-                    <label class='checkarea'> 24-Hour Mode (Switch off for AM/PM)
-                        <input type='checkbox' name='mode' id='mode' value='mode'><span class='checkmark' /></span>
-                    </label>
-                    <label class='checkarea'> Show Seconds Indicator
-                        <input type='checkbox' name='seconds' id='seconds' value='seconds'><span class='checkmark' /></span>
-                    </label>
-                    <label class='checkarea'> Flash Seconds Indicator
-                        <input type='checkbox' name='flash' id='flash' value='seconds'><span class='checkmark' /></span>
-                    </label>
-                    <label class='checkarea utc-checkbox'> Show World Time
-                        <input type='checkbox' name='utc' id='utc' value='utc'><span class='checkmark' /></span>
-                    </label>
-                    <label class='checkarea'> Use Night Mode (Turns the display off between the times set below)
-                        <input type='checkbox' name='night' id='night' value='night'><span class='checkmark'></span>
-                    </label>
-                    <div class='onoff-button' align='center'>
-                        <button class='btn btn-light' type='submit' id='onoff' style='width:200px'>Turn Display Off</button>
-                    </div>
-                    <hr />
-                    <p class='subhead text-center'>Clock Brightness</p>
-                    <input type='range' class='slider' name='brightness' id='brightness' value='16' min='1' max='16' />
-                    <table width='100%%'>
-                        <tr>
-                            <td width='20%%' align='left'><div class='biconlow'><span></span></div></td>
-                            <td width='60%%' align='center'><div class='brightness-status subslider'>Brightness: <span></span></div></td>
-                            <td width='20%%' align='right'><div class='biconhih'><span></span></div></td>
-                        </tr>
-                    </table>
-                    <hr />
-                    <p class='utc-head subhead text-center'>World Time (<span>Disabled</span>)</p>
-                    <input type='range' class='slider' name='utcs' id='utcs' value='0' min='0' max='24' />
-                    <table width='100%%'>
-                        <tr>
-                            <td width='20%%' align='left'><small>-12</small></td>
-                            <td width='60%%' align='center'><div class='utc-status subslider'><small>Offset from local time: <span></span> hours</small></div></td>
-                            <td width='20%%' align='right'><small>+12</small></td>
-                        </tr>
-                    </table>
-                    <p align='center'><small><i>When world time is displayed, daylight saving is not enabled</i></small></p>
-                    <hr />
-                    <div align='center'>
-                        <h4>Alarms</h4>
-                        <p class='alarm-list'><span></span></p>
-                        <p>Add an Alarm (24-hour clock)</p>
-                        <p style='font-size:1em;'>
-                            Hour : <input type='text' id='enter-hour' min='0' max='23' style='width:60px;color:black;' placeholder='15' />&nbsp; 
-                            Minute : <input type='text' id='enter-min' min='0' max='59' style='width:60px;color:black;' placeholder='00' />&nbsp;
-                            Repeat: <input type='checkbox' name='repeat' id='repeat' value=''>
-                        </p>
-                        <button class='btn btn-light' type='submit' id='setalarm' style='width:200px'>Set Alarm</button>
-                    </div>
-                    <p>&nbsp;</p>
-                    <div class='advancedsettings' style='background-color:#cccccc'>
-                        <p class='showhide text-center' style='line-height:36px;color:black;'>Advanced Settings</p>
-                        <div class='advanced' align='center'>
-                            <br />
-                            <div class='debug-checkbox' style='color:black;'>
-                                <input type='checkbox' name='bst' id='bst' value='bast' /> Apply Daylight Savings Automatically
-                            </div>
-                            <div class='debug-checkbox' style='color:black;'>
-                                <input type='checkbox' name='debug' id='debug' value='debug' /> Debug Mode
-                            </div>
-                            <br />
-                            <div class='reset-button' align='center'>
-                                <button class='btn btn-danger' type='submit' id='reset' style='width:200px'>Reset Cløck</button><br />&nbsp;
+                <!-- Settings and Controls Row -->
+                <div class='row'>
+                    <div class='col-2'>&nbsp;</div>
+                    <div class='col-8'>
+                        <h4 align='center'>General Settings</h4>
+                        <label class='checkarea'> 24-Hour Mode (Switch off for AM/PM)
+                            <input type='checkbox' name='mode' id='mode' value='mode'><span class='checkmark' /></span>
+                        </label>
+                        <label class='checkarea'> Show Seconds Indicator
+                            <input type='checkbox' name='seconds' id='seconds' value='seconds'><span class='checkmark' /></span>
+                        </label>
+                        <label class='checkarea'> Flash Seconds Indicator
+                            <input type='checkbox' name='flash' id='flash' value='seconds'><span class='checkmark' /></span>
+                        </label>
+                        <label class='checkarea utc-checkbox'> Show World Time
+                            <input type='checkbox' name='utc' id='utc' value='utc'><span class='checkmark' /></span>
+                        </label>
+                        <label class='checkarea'> Use Night Mode (Turns the display off between the times set below)
+                            <input type='checkbox' name='night' id='night' value='night'><span class='checkmark'></span>
+                        </label>
+                        <div class='onoff-button' align='center'>
+                            <button class='btn btn-light' type='submit' id='onoff' style='width:200px'>Turn Display Off</button>
+                        </div>
+                        <hr />
+                        <p class='subhead text-center'>Clock Brightness</p>
+                        <input type='range' class='slider' name='brightness' id='brightness' value='16' min='1' max='16' />
+                        <table width='100%%'>
+                            <tr>
+                                <td width='20%%' align='left'><div class='biconlow'><span></span></div></td>
+                                <td width='60%%' align='center'><div class='brightness-status subslider'>Brightness: <span></span></div></td>
+                                <td width='20%%' align='right'><div class='biconhih'><span></span></div></td>
+                            </tr>
+                        </table>
+                        <hr />
+                        <p class='utc-head subhead text-center'>World Time (<span>Disabled</span>)</p>
+                        <input type='range' class='slider' name='utcs' id='utcs' value='0' min='0' max='24' />
+                        <table width='100%%'>
+                            <tr>
+                                <td width='20%%' align='left'><small>-12</small></td>
+                                <td width='60%%' align='center'><div class='utc-status subslider'><small>Offset from local time: <span></span> hours</small></div></td>
+                                <td width='20%%' align='right'><small>+12</small></td>
+                            </tr>
+                        </table>
+                        <p align='center'><small><i>When world time is displayed, daylight saving is not enabled</i></small></p>
+                        <hr />
+                        <div align='center'>
+                            <h4>Alarms</h4>
+                            <p class='alarm-list'><span></span></p>
+                            <p>Add an Alarm (24-hour clock)</p>
+                            <p style='font-size:1em;'>
+                                Hour : <input type='text' id='enter-hour' min='0' max='23' style='width:60px;color:black;' placeholder='15' />&nbsp; 
+                                Minute : <input type='text' id='enter-min' min='0' max='59' style='width:60px;color:black;' placeholder='00' />&nbsp;
+                                Repeat: <input type='checkbox' name='repeat' id='repeat' value=''>
+                            </p>
+                            <button class='btn btn-light' type='submit' id='setalarm' style='width:200px'>Set Alarm</button>
+                        </div>
+                        <p>&nbsp;</p>
+                        <div class='advancedsettings' style='background-color:#cccccc'>
+                            <p class='showhide text-center' style='line-height:36px;color:black;'>Advanced Settings</p>
+                            <div class='advanced' align='center'>
+                                <br />
+                                <div class='debug-checkbox' style='color:black;'>
+                                    <input type='checkbox' name='bst' id='bst' value='bast' /> Apply Daylight Savings Automatically
+                                </div>
+                                <div class='debug-checkbox' style='color:black;'>
+                                    <input type='checkbox' name='debug' id='debug' value='debug' /> Debug Mode
+                                </div>
+                                <br />
+                                <div class='reset-button' align='center'>
+                                    <button class='btn btn-danger' type='submit' id='reset' style='width:200px'>Reset Cløck</button><br />&nbsp;
+                                </div>
                             </div>
                         </div>
                     </div>
+                    <div class='col-2'>&nbsp;</div>
                 </div>
-                <div class='col-2'>&nbsp;</div>
-            </div>
-            <!-- Colophon Row -->
-            <div class='row'>
-                <div class='col'>
-                    <p class='colophon text-center'>Cløck copyright &copy; 2014-18 Black Pyramid (Time)<br />
-                    <a href='https://github.com/smittytone/clock'><img src='https://smittytone.github.io/images/rassilon.png' width='32' height='32' /></a></p>
+                <!-- Colophon Row -->
+                <div class='row'>
+                    <div class='col'>
+                        <p class='colophon text-center'>Cløck copyright &copy; 2014-19 Black Pyramid (Time)<br />
+                        <a href='https://github.com/smittytone/clock'><img src='https://smittytone.github.io/images/rassilon.png' width='32' height='32' /></a></p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -232,7 +234,7 @@
             displayon = s['on'];
 
             // Set the display brightness slider
-            var b = parseInt(s['bright']) + 1;
+            var b = parseInt(s['bright']);
             $('.brightness-status span').text(b);
             $('#brightness').val(b);
 
@@ -265,7 +267,7 @@
                     // Pad out the minutes if necessary
                     let m = (alarm.min < 10 ? '0' : '') + alarm.min.toString();
                     
-                    s = s + '<tr><td width=""10%%"" align=""center"">' + (i + 1).toString() + '</td><td width=""50%%"" align=""center"">' + alarm.hour + ':' + m + '</td><td width=""20%%"" align=""center"">' + (alarm.repeat ? 'Yes' : 'No') + '</td><td width=""20%%"" align=""center""><input type=""image"" src=""' + agenturl + '/images/delete.png"" id=""deletealarm' + i.toString() + '""></td></tr>';
+                    s = s + '<tr><td width=""10%%"" align=""center"">' + (i + 1).toString() + '</td><td width=""50%%"" align=""center"">' + alarm.hour + ':' + m + '</td><td width=""20%%"" align=""center"">' + (alarm.repeat ? 'Yes' : 'No') + '</td><td width=""20%%"" align=""center""><input type=""image"" src=""' + agenturl + '/images/silence.png"" width=""20"" id=""silencealarm' + i.toString() + '"">&nbsp;<input type=""image"" src=""' + agenturl + '/images/delete.png"" width=""20"" id=""deletealarm' + i.toString() + '""></td></tr>';
                 }
 
                 s = s + '</table>';
@@ -275,6 +277,12 @@
                 for (var i = 0 ; i < alarms.length ; i++) {
                     let s = 'deletealarm' + i.toString();
                     document.getElementById(s).onclick = deleteAlarm;
+                }
+
+                // Set each silence button shown to point to the same target function
+                for (var i = 0 ; i < alarms.length ; i++) {
+                    let s = 'silencealarm' + i.toString();
+                    document.getElementById(s).onclick = silenceAlarm;
                 }
             }
         }
@@ -336,7 +344,7 @@
         }
 
         function setBrightness() {
-            updateSettings({'setbright':$('#brightness').val() - 1});
+            updateSettings({'setbright':$('#brightness').val()});
         }
 
         function setNight() {
@@ -369,10 +377,18 @@
 
         function deleteAlarm() {
             // Delete an alarm based on its index within the array used to generate the table.
-            // Each button's id is set to 'deleteAlarm' plus the array index as a string
+            // Each button's ID is set to 'deleteAlarm' plus the array index as a string
             let s = this.id.substring(11);
             let alarmData = {'action':'delete', 'index':s};
-            send({'alarm':alarmData}, '/settings');
+            send({'setalarm':alarmData}, '/settings');
+        }
+
+        function silenceAlarm() {
+            // Silence an alarm based on its index within the array used to generate the table.
+            // Each button's ID is set to 'silenceAlarm' plus the array index as a string
+            let s = this.id.substring(12);
+            let alarmData = {'action':'silence', 'index':s};
+            send({'setalarm':alarmData}, '/settings');
         }
 
         function doReset() {
