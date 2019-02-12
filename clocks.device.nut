@@ -96,8 +96,73 @@ function clockTick() {
     // Check for Alarms
     checkAlarms();
 
+    // ADDED IN 2.1.0
+    // Should the display be enabled or not?
+    if (settings.timer.isset) {
+        local should = shouldShowDisplay();
+        if (settings.on != should) {
+            // Change the state of the display
+            setDisplay(should);
+            settings.on = should;
+        }
+    }
+
     // Present the current time
     if (settings.on) displayTime();
+}
+
+function shouldShowDisplay() {
+    // ADDED IN 2.1.0
+    // Returns true if the display should be on, false otherwise - default is true / on
+    // If we have auto-dimming set, we need only check whether we need to turn the display off
+    // NOTE The function should only be called if 'settings.timer.isset' is true, ie. we're
+    //      in night mode
+
+    // Assume we will enable the display
+    local shouldShow = true;
+
+    // Should we disable the advance? Only if it's set and we've hit the start or end end 
+    // of the night period
+    // NOTE 'isAdvanceSet' is ONLY set if 'settings.timer.isset' is TRUE
+    if (isAdvanceSet) {
+        // 'isAdvanceSet' is unset when the next event time (display goes on or off) is reached
+        if (hours == settings.timer.on.hour && minutes >= settings.timer.on.min) isAdvanceSet = false;
+        if (hours == settings.timer.off.hour && minutes >= settings.timer.off.min) isAdvanceSet = false;
+    }
+
+    // Have we crossed into the night period? If so, unset 'shouldShow'
+    // Check by converting all times to minutes
+    local start = settings.timer.on.hour * 60 + settings.timer.on.min;
+    local end = settings.timer.off.hour * 60 + settings.timer.off.min;
+    local now = hours * 60 + minutes;
+    local delta = end - start;
+    
+    // End and start times are identical
+    if (delta == 0) return !isAdvanceSet;
+    
+    if (delta > 0) {
+        if (now >= start && now < end) shouldShow = false;
+    } else {
+        if (now >= start || now < end) shouldShow = false;
+    }
+
+    // 'isAdvancedSet' inverts the expected state
+    return (isAdvanceSet ? !shouldShow : shouldShow);
+}
+
+function setDisplay(state) {
+    // ADDED IN 2.1.0
+    // Power up or power down the display according to the supplied state (true or false)
+    if (state) {
+        powerUp();
+        agent.send("display.state", { "on" : true, "advance" : isAdvanceSet });
+        if (debug) server.log("Brightening display at " + format("%02i", hours) + ":" + format("%02i", minutes));
+    } else {
+        clearDisplay();
+        powerDown();
+        agent.send("display.state", { "on" : false, "advance" : isAdvanceSet });
+        if (debug) server.log("Dimming display at " + format("%02i", hours) + ":" + format("%02i", minutes));
+    }
 }
 
 function displayTime() {
@@ -429,6 +494,38 @@ function stopAlarm(index) {
 }
 
 
+// NIGHT MODE FUNCTIONS
+
+function setNight(value) {
+    // ADDED IN 2.1.0
+    // This function is called when the app enables or disables night mode
+    // 'value' is passed in from the agent as a bool
+
+    // Just set the preference because it will be applied almost immediately
+    // via the 'clockTick()' loop
+    settings.timer.isset = value;     
+
+    // Disable the timer advance setting as it's only relevant if night mode is
+    // on AND it has been triggered since night mode was enabled
+    isAdvanceSet = false;
+
+    if (debug) server.log("Setting night mode " + (value ? "on" : "off"));
+}
+
+function setNightTime(data) {
+    // ADDED IN 2.1.0
+    // Record the times at which the display may turn on and off
+    // NOTE The display will not actually change at these times unless
+    //      'settings.timer.isset' is set, ie. we're in night mode
+    settings.timer.on.hour = data.on.hour;
+    settings.timer.on.min = data.on.min;
+    settings.timer.off.hour = data.off.hour;
+    settings.timer.off.min = data.off.min;
+    
+    if (debug) server.log("Night mode to start at " + format("%02i", settings.timer.on.hour) + ":" + format("%02i", settings.timer.on.min) + " and end at " + format("%02i", settings.timer.off.hour) + ":" + format("%02i", settings.timer.off.min));
+}
+
+
 // OFFLINE OPERATION FUNCTIONS
 function discHandler(event) {
     // Called if the server connection is broken or re-established
@@ -503,8 +600,8 @@ agent.on("clock.set.debug", setDebug);
 agent.on("clock.set.alarm", setAlarm);
 agent.on("clock.clear.alarm", clearAlarm);
 agent.on("clock.stop.alarm", stopAlarm);
-//agent.on("clock.set.nightmode", setNight);
-//agent.on("clock.set.nighttime", setNightTime);
+agent.on("clock.set.nightmode", setNight);
+agent.on("clock.set.nighttime", setNightTime);
 
 // Next, other actions
 agent.on("clock.do.reboot", function(dummy) {

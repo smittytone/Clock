@@ -160,11 +160,18 @@ device.on("clock.get.prefs", function(dummy) {
 });
 
 // Update the list of alarms maintained by the agent
-// TODO Persist this data
 device.on("update.alarms", function(new) {
     prefs.alarms = new;
     stateUpdate = true;
     if (debug) server.log("Alarm list updated: " + prefs.alarms.len() + " alarms left");
+    server.save(prefs);
+});
+
+// ADDED IN 2.1.0
+device.on("display.state", function(state) {
+    stateUpdate = true;
+    prefs.on = state.on;
+    prefs.timer.isadv = state.advance;
     server.save(prefs);
 });
 
