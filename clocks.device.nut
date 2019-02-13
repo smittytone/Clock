@@ -1,15 +1,15 @@
 // Clock
 // Copyright 2014-19, Tony Smith
 
-// IMPORTS
-// NOTE If you're not using Squinter or an equivalent tool,
-// cut and paste the named library's code in place of the appropriate line
+// ********** IMPORTS **********
+// NOTE If you're not using Squinter or an equivalent tool, cut and 
+//      paste the named library's code in place of the appropriate line
 #import "../HT16K33Segment/HT16K33Segment.class.nut"
 #import "../generic/utilities.nut"
 #import "../generic/disconnect.nut"
 
 
-// CONSTANTS
+// ********** CONSTANTS **********
 const DISCONNECT_TIMEOUT = 60;
 const RECONNECT_TIMEOUT = 15;
 const TICK_DURATION = 0.5;
@@ -17,9 +17,11 @@ const TICK_TOTAL = 4;
 const HALF_TICK_TOTAL = 2;
 const ALARM_DURATION = 2;
 //const INITIAL_ANGLE = 0;
+const ALARM_NO_ACTION = 0;
+const ALARM_START_FLASH = 1;
+const ALARM_STOP_FLASH = 2;
 
-
-// GOLBAL VARIABLES
+// ********** GLOBAL VARIABLES **********
 // Objects
 local display = null;
 local tickTimer = null;
@@ -48,13 +50,13 @@ local debug = true;
 
 // Alarms
 // 'alarmstate' has three possible values: 
-//    0 = Do nothing
-//   +1 = Start the screen flashing (there is an active alarm)
-//   -1 = Stop the screen flashing (there are no active alarms)
-local alarmState = 0;
+//    ALARM_NO_ACTION
+//    ALARM_START_FLASH
+//    ALARM_STOP_FLASH
+local alarmState = ALARM_NO_ACTION;
 
 
-// TIME AND DISPLAY CONTROL FUNCTIONS
+// ********** TIME AND DISPLAY CONTROL FUNCTIONS **********
 function clockTick() {
     // Set a trigger for the next tick. We do this so that the time taken
     // to run the clock_tick code to minimise the drift
@@ -93,6 +95,7 @@ function clockTick() {
     tickCount = tickCount == TICK_TOTAL ? 0 : tickCount + 1;
     tickFlag = tickCount < HALF_TICK_TOTAL ? true : false;
 
+    // ADDED IN 2.0.0
     // Check for Alarms
     checkAlarms();
 
@@ -234,9 +237,9 @@ function displayTime() {
     display.setColon(colonState).updateDisplay();
 
     // Check for alarms
-    if (alarmState == 1) display.setDisplayFlash(2);
-    if (alarmState == -1) display.setDisplayFlash(0);
-    alarmState = 0;
+    if (alarmState == ALARM_START_FLASH) display.setDisplayFlash(2);
+    if (alarmState == ALARM_STOP_FLASH) display.setDisplayFlash(0);
+    alarmState = ALARM_NO_ACTION;
 }
 
 function syncText() {
@@ -250,7 +253,7 @@ function syncText() {
 }
 
 
-// PREFERENCES FUNCTIONS
+// ********** PREFERENCES FUNCTIONS **********
 function setPrefs(prefsTable) {
     // Cancel the 'Sync' display timer if it has yet to fire
     if (debug) server.log("Received preferences from agent");
@@ -375,15 +378,20 @@ function setDefaultPrefs() {
 }
 
 
-// ALARM FUNCTONS
+// ********** ALARM FUNCTONS **********
 function checkAlarms() {
+    // ADDED IN 2.0.0
     // Do we need to display an alarm screen flash?
     if (alarms.len() > 0) {
         foreach (alarm in alarms) {
+            // Might an alarm be triggered?
             if (alarm.hour == hours && alarm.min == minutes) {
                 if (!alarm.on && !alarm.done) {
+                    // Set the flag to start the display flashing
+                    alarmState = ALARM_START_FLASH;
                     if (debug) server.log("Alarm triggered");
-                    alarmState = 1;
+                    
+                    // Set the off time
                     alarm.offmins = alarm.min + ALARM_DURATION;
                     alarm.offhour = alarm.hour
                     if (alarm.offmins > 59) {
@@ -392,17 +400,27 @@ function checkAlarms() {
                         if (alarm.offhour > 23) alarm.offhour = 24 - alarm.offhour;
                     }
 
+                    // Mark the alarm as active
                     alarm.on = true;
                 }
             }
 
+            // Might an alarm be disabled
             if (alarm.offhour == hours && alarm.offmins == minutes) {
-                alarmState = -1;
+                // Clear the off times so we don't perform this code again
+                alarm.offhour = 99;
+                alarm.offmins = 99;
+
+                // Set the flag to stop the display flashing
+                alarmState = ALARM_STOP_FLASH;
                 if (debug) server.log("Alarm stopped");
+                
+                // Mark alarm for deletion if it's not on repeat
                 if (!alarm.repeat) alarm.done = true;
             }
         }
 
+        // Tidy up the alarm list: delete any alarms that are done
         local i = 0;
         local flag = false;
         while (i < alarms.len()) {
@@ -410,25 +428,30 @@ function checkAlarms() {
             if (alarm.done == true) {
                 flag = true;
                 alarms.remove(i);
-                if (debug) server.log("Alarm deleted");
+                if (debug) server.log("Alarm " + i + " deleted");
             } else {
                 i++;
             }
         }
 
+        // If we deleted any alarms, tell the agent
         if (flag) agent.send("update.alarms", alarms);
     }
 }
 
-// Sort the alarms into order
 function sortAlarms() {
+    // ADDED IN 2.0.0
+    // Sort the alarms into order
     alarms.sort(function(a, b) {
+        // Sort by hour
         if (a.hour > b.hour) return 1;
         if (a.hour < b.hour) return -1;
 
+        // Sort by min
         if (a.min > b.min) return 1;
         if (a.min < b.min) return -1;
 
+        // Alarms are identical
         return 0;
     });
 }
@@ -446,6 +469,8 @@ function sortFunction(first, second) {
 }
 
 function setAlarm(newAlarm) {
+    // ADDED IN 2.0.0, UPDATED IN 2.1.0
+    // Add a new alarm to the list
     if (alarms.len() > 0) {
         foreach (alarm in alarms) {
             if (alarm.hour == newAlarm.hour && alarm.min == newAlarm.min) {
@@ -461,8 +486,8 @@ function setAlarm(newAlarm) {
 
     newAlarm.on <- false;
     newAlarm.done <- false;
-    newAlarm.offmins <- -1;
-    newAlarm.offhour <- -1;
+    newAlarm.offmins <- 99;
+    newAlarm.offhour <- 99;
     alarms.append(newAlarm);
     sortAlarms();
     if (debug) server.log("Alarm set (" + alarms.len() + ")");
@@ -470,31 +495,35 @@ function setAlarm(newAlarm) {
 }
 
 function clearAlarm(index) {
+    // ADDED IN 2.1.0
     // Delete the specified alarm
-    if (index < 0 || index > alarms.len() - 1) return;
-    local alarm = alarms[index];
-    if (alarm.on) stopAlarm(index);
-    alarms.remove(index);
-    if (debug) server.log("Alarm " + index + " removed (" + alarms.len() + " left)");
-    agent.send("update.alarms", alarms);
+    if (alarms.len() > 0) {
+        if (index < 0 || index > alarms.len() - 1) return;
+        local alarm = alarms[index];
+        if (alarm.on) stopAlarm(index);
+        alarms.remove(index);
+        if (debug) server.log("Alarm " + index + " removed (" + alarms.len() + " left)");
+        agent.send("update.alarms", alarms);
+    }
 }
 
 function stopAlarm(index) {
+    // ADDED IN 2.1.0
     // Silence the specified alarm
     if (alarms.len() > 0) {
+        if (index < 0 || index >= alarms.len()) return;
         local alarm = alarms[index];
         if (alarm.on) {
             alarm.on = false;
             if (!alarm.repeat) alarm.done = true;
             if (debug) server.log("Alarm " + index + " silenced");
-            alarmState = -1;
+            alarmState = ALARM_STOP_FLASH;
         }
     }
 }
 
 
-// NIGHT MODE FUNCTIONS
-
+// ********** NIGHT MODE FUNCTIONS **********
 function setNight(value) {
     // ADDED IN 2.1.0
     // This function is called when the app enables or disables night mode
@@ -532,10 +561,10 @@ function setNightTime(data) {
 }
 
 
-// OFFLINE OPERATION FUNCTIONS
+// ********** OFFLINE OPERATION FUNCTIONS **********
 function discHandler(event) {
     // Called if the server connection is broken or re-established
-    if ("message" in event) server.log("Connection Manager: " + event.message);
+    if ("message" in event && debug) server.log("Connection Manager: " + event.message);
 
     if ("type" in event) {
         if (event.type == "disconnected") {
@@ -562,7 +591,7 @@ function discHandler(event) {
 }
 
 
-// START OF PROGRAM
+// ********** START OF PROGRAM **********
 
 // Load in generic boot message code
 // NOTE If you're not using Squinter or an equivalent tool,
