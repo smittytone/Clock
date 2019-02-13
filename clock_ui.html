@@ -122,10 +122,10 @@
                                     <label class='col-form-label' style='color:white'>Start&nbsp;Time</label>
                                 </div>
                                 <div class='col-3' align='center'>
-                                    <input type='text' class='form-control form-control-sm' id='dimmerstarthour' min='0' max='22' style='color:black' placeholder='23'>
+                                    <input type='text' class='form-control form-control-sm' id='dimmerstarthour' min='0' max='22' style='color:black; width: 100px; text-align: center;' placeholder='23'>
                                 </div>
                                 <div class='col-3' align='center'>
-                                    <input type='text' class='form-control form-control-sm' id='dimmerstartmin' min='0' max='59' style='color:black' placeholder='00'>
+                                    <input type='text' class='form-control form-control-sm' id='dimmerstartmin' min='0' max='59' style='color:black; width: 100px; text-align: center;' placeholder='00'>
                                 </div>
                                 <div class='col-1' align='left'>&nbsp;</div>
                                 <div class='col-1' align='left'>&nbsp;</div>
@@ -135,10 +135,10 @@
                                     <label class='col-form-label' style='color:white'>End&nbsp;Time</label>
                                 </div>
                                 <div class='col-3' align='center'>
-                                    <input type='text' class='form-control form-control-sm' id='dimmerendhour' min='1' max='23' style='color:black' placeholder='7'>
+                                    <input type='text' class='form-control form-control-sm' id='dimmerendhour' min='1' max='23' style='color:black; width:100px; text-align: center;' placeholder='7'>
                                 </div>
                                 <div class='col-3' align='center'>
-                                    <input type='text' class='form-control form-control-sm' id='dimmerendmin' min='0' max='59' style='color:black' placeholder='00'>
+                                    <input type='text' class='form-control form-control-sm' id='dimmerendmin' min='0' max='59' style='color:black; width: 100px; text-align: center;' placeholder='00'>
                                 </div>
                                 <div class='col-1' align='left'>&nbsp;</div>
                                 <div class='col-1' align='left'>&nbsp;</div>
@@ -153,10 +153,10 @@
                             <h4>Alarms</h4>
                             <p class='alarm-list'><span></span></p>
                             <p>Add an Alarm (24-hour clock)</p>
-                            <p style='font-size:1em;'>
-                                Hour : <input type='text' id='enter-hour' min='0' max='23' style='width:60px;color:black;' placeholder='15' />&nbsp; 
-                                Minute : <input type='text' id='enter-min' min='0' max='59' style='width:60px;color:black;' placeholder='00' />&nbsp;
-                                Repeat: <input type='checkbox' name='repeat' id='repeat' value=''>
+                            <p>
+                                Hour<input type='text' class='form-control form-control-sm' id='enter-hour' min='0' max='23' style='width:100px;color:black; text-align: center;' placeholder='15' />
+                                Minute<input type='text' class='form-control form-control-sm' id='enter-min' min='0' max='59' style='width:100px;color:black; text-align: center;' placeholder='00' />
+                                Repeat <input type='checkbox' name='repeat' id='repeat' value=''>
                             </p>
                             <button class='btn btn-light' type='submit' id='setalarm' style='width:200px'>Set Alarm</button>
                         </div>
