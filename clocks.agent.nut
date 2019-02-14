@@ -235,7 +235,6 @@ api.get("/settings", function(context) {
 api.post("/settings", function(context) {
     // A POST request made to /settings, so apply the requested setting
     try {
-        if (prefs.debug) server.log(context.req.rawbody);
         local data = http.jsondecode(context.req.rawbody);
         local error = null;
 
