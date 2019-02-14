@@ -444,7 +444,7 @@ function checkAlarms() {
         }
 
         // If we deleted any alarms, tell the agent
-        if (flag) agent.send("update.alarms", alarms);
+        if (flag) agent.send("update.alarms", settings.alarms);
     }
 }
 
@@ -480,7 +480,7 @@ function setAlarm(newAlarm) {
                 alarm.repeat = newAlarm.repeat;
                 
                 // Update the agent's list
-                agent.send("update.alarms", alarms);
+                agent.send("update.alarms", settings.alarms);
 
                 if (debug) server.log("Alarm at " + format("%02i", alarm.hour) + ":" + format("%02i", alarm.min) + " updated: repeat " + (alarm.repeat ? "on" : "off"));
                 return;
@@ -516,7 +516,7 @@ function clearAlarm(index) {
         if (alarm.on) stopAlarm(index);
         settings.alarms.remove(index);
         if (debug) server.log("Alarm at " + format("%02i", alarm.hour) + ":" + format("%02i", alarm.min) + " removed (" + settings.alarms.len() + " left)");
-        agent.send("update.alarms", alarms);
+        agent.send("update.alarms", settings.alarms);
     }
 }
 
