@@ -42,8 +42,11 @@ Visit your cløck’s agent URL for a control interface.
 ## Release Notes ##
 
 - 2.1.0 &mdash; *Unreleased*
+    - Sync agent and device code with [MatrixClock](https://github.com/smittytone/MatrixClock)
     - Add night mode
     - Revise alarms code
+    - Add API debugging
+    - Remove redundant agent-side server.save() result checks
     - Update dependencies (Bootstrap 4.3.0; Rocky 2.0.0; HT16K33Segment 2.0.0)
 - 2.0.0 &mdash; *1 November 2018*
     - Update to [Bootstrap 4.1.3](https://getbootstrap.com/)
