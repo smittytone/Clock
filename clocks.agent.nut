@@ -1,13 +1,9 @@
 // Clock
 // Copyright 2014-19, Tony Smith
 
-// IMPORTS
+// ********** IMPORTS **********
 #require "Rocky.class.nut:2.0.2"
 
-// CONSTANTS
-const APP_CODE = "B14E7692-6D05-4AC6-B66A-AB40C98E3D5B";
-const MAX_ALARMS = 8;
-const ALARM_DURATION = 2;
 // If you are NOT using Squinter or a similar tool, replace the following #import statements
 // with the contents of the named files (clock_ui.html, silence_img.nut and delete_img.nut)
 // Source code for these files here: https://github.com/smittytone/Clock
@@ -21,21 +17,32 @@ const HTML_STRING = @"
 #import "clock_ui.html"
 ";
 
-// MAIN VARIABLES
+// ********** CONSTANTS **********
+const APP_CODE = "B14E7692-6D05-4AC6-B66A-AB40C98E3D5B";
+const MAX_ALARMS = 8;
+const ALARM_DURATION = 2;
+
+
+// ********** MAIN VARIABLES **********
 local prefs = null;
 local api = null;
-local debug = false;
-local stateUpdate = false;
+local stateChange = false;
 
-// FUNCTIONS
-function sendPrefs() {
+
+// ********** FUNCTIONS **********
+// NOTE These primarily centre around device settings:
+//      sending them to the newly booted device, sending them to
+//      controllers, eg. Apple Watch and the web UI
+
+function sendPrefsToDevice(ignore) {
     // The clock has requested the current settings data, so send it as a table
+    if (prefs.debug) server.log("Sending stored preferences to the Clock");
     device.send("clock.set.prefs", prefs);
 }
 
 function encodePrefsForUI() {
     // Responds to the UI's request for the clock's settings
-    // with all the clock's settings
+    // by sending all the clock's settings plus its connected state
     local data = { "mode"        : prefs.hrmode,
                    "bst"         : prefs.bst,
                    "flash"       : prefs.flash,
@@ -46,23 +53,16 @@ function encodePrefsForUI() {
                    // Web UI expects offset in range 0-24, so add 12 here (app range: -12 to +12)
                                      "offset" : prefs.utcoffset + 12 },
                    "on"          : prefs.on,
-                   "debug"       : debug,
+                   "debug"       : prefs.debug,
                    "isconnected" : device.isconnected(),
-                   "alarms"      : [],
                    // ADDED IN 2.1.0: 
                    // Times to disable clock (eg. over night)
                    "timer"       : { "on"  : { "hour" : prefs.timer.on.hour,  "min"  : prefs.timer.on.min },
                                      "off" : { "hour" : prefs.timer.off.hour, "min" : prefs.timer.off.min },
-                                     "isset" : prefs.timer.isset }
+                                     "isset" : prefs.timer.isset },
+                    "alarms"      : prefs.alarms
                 };
     
-    // Write in the alarms, if any
-    if (prefs.alarms.len() > 0) {
-        foreach (alarm in prefs.alarms) {
-            data.alarms.append(alarm);
-        }
-    }
-
     return http.jsonencode(data, {"compact":true});
 }
 
@@ -83,13 +83,13 @@ function resetPrefs() {
 	server.save({});
 
 	// Reset 'prefs' values to the defaults
-	setPrefs();
+	initialisePrefs();
 
     // Resave the prefs
     server.save(prefs);
 }
 
-function setPrefs() {
+function initialisePrefs() {
     // Reset 'prefs' values to the defaults
     // The existing table, if there is one, will be garbage-collected
     prefs = {};
@@ -101,12 +101,11 @@ function setPrefs() {
     prefs.colon <- true;    // true/false for colon visible or not
     prefs.brightness <- 7;  // 0 to 15 for boot-set LED brightness
     prefs.on <- true;       // true/false for whether the clock LED is lit
-    prefs.debug <- debug;   // true/false for whether the clock is in debug mode
+    prefs.debug <- false;   // true/false for whether the clock is in debug mode
     prefs.alarms <- [];     // array of alarm times
-	debug = false;
 
     // ADDED IN 2.1.0
-    // Add night mode timer support
+    // Times to temporarily disable clock display (eg. over night)
     prefs.timer <- { "on"  : { "hour" : 7,  "min" : 00 },
                      "off" : { "hour" : 22, "min" : 30 },
                      "isset" : false,
@@ -118,10 +117,23 @@ function reportAPIError(func) {
     return ("Mis-formed parameter sent (" + func +")");
 }
 
+function debugAPI(context, next) {
+    // Display a UI API activity report
+    if (prefs.debug) {
+        server.log("API received a request at " + time());
+        server.log("  VERB: " + context.req.method.toupper());
+        server.log("  PATH: " + context.req.path.tolower());
+        if (context.req.rawbody.len() > 0) server.log("  BODY: " + context.req.rawbody.tolower());
+    }
+    
+    // Invoke the next middleware
+    next();
+}
 
-// RUNTIME START
+// ********** RUNTIME START **********
+
 // Initialize the clock's preferences - we will read in saved values, if any, next
-setPrefs();
+initialisePrefs();
 
 // Load in the server-saved preferences table
 local savedPrefs = server.load();
@@ -133,14 +145,12 @@ if (savedPrefs.len() != 0) {
 
     if (!("debug" in prefs)) {
         // No debug key in prefs, so add it
-        prefs.debug <- debug;
+        prefs.debug <- false;
         server.save(prefs);
-    } else {
-        debug = prefs.debug;
     }
 
     // ADDED IN 2.1.0
-    // Add night mode timer support
+    // Times to temporarily disable clock display (eg. over night)
     if (!("timer" in prefs)) {
         prefs.timer <- { "on"  : { "hour" : 7,  "min" : 00 },
                          "off" : { "hour" : 22, "min" : 30 },
@@ -149,66 +159,74 @@ if (savedPrefs.len() != 0) {
         server.save(prefs);
     }
 
-    if (debug) server.log("Clock settings loaded: " + encodePrefsForUI());
+    if (prefs.debug) server.log("Clock settings loaded: " + encodePrefsForUI());
+} else {
+    // Table is empty, so this must be a first run
+    if (prefs.debug) server.log("First Clock run");
 }
 
 // Register device-sent message handlers:
 // NOTE This is the signal from the device that it is ready,
 //      so all device-sending events should be registered here
-device.on("clock.get.prefs", function(dummy) {
-	sendPrefs();
-});
-
-// Update the list of alarms maintained by the agent
-device.on("update.alarms", function(new) {
-    prefs.alarms = new;
-    stateUpdate = true;
-    if (debug) server.log("Alarm list updated: " + prefs.alarms.len() + " alarms left");
-    server.save(prefs);
-});
+device.on("clock.get.prefs", sendPrefsToDevice);
 
 // ADDED IN 2.1.0
 device.on("display.state", function(state) {
-    stateUpdate = true;
+    stateChange = true;
     prefs.on = state.on;
     prefs.timer.isadv = state.advance;
     server.save(prefs);
 });
 
-// Set up the web API
-api = Rocky();
+// Update the list of alarms maintained by the agent
+device.on("update.alarms", function(new) {
+    stateChange = true;
+    prefs.alarms = new;
+    stateChange = true;
+    if (prefs.debug) server.log("Alarm list updated: " + prefs.alarms.len() + " alarms listed");
+});
 
+// Set up the web UI and data API
+api = Rocky();
+api.use(debugAPI);
+
+// Set up UI access security: HTTPS only
+api.authorize(function(context) {
+    // Mandate HTTPS connections
+    if (context.getHeader("x-forwarded-proto") != "https") return false;
+    return true;
+});
+
+api.onUnauthorized(function(context) {
+    // Incorrect level of access security
+    context.send(401, "Insecure access forbidden");
+});
+
+/*
+    CLOCK ENDPOINTS
+
+    SETTINGS
+        GET  /settings -> JSON, settings + connection state
+        POST /settings <- JSON, one or more settings to change.
+
+    ACTIONS
+        POST /actions <- JSON, action type, eg. reset, plus binary switches
+
+    STATUS
+        GET /status -> JSON, connection state + should UI force an update
+
+    CONTROLLER SUPPORT
+        GET /controller/info -> JSON, app ID, watch support
+        GET controller/state -> JSON, subset of settings + connection state
+*/
+
+// Serve the web UI for a GET at the agent root
 api.get("/", function(context) {
     // A GET request made to root, so return the UI HTML
     context.send(200, format(HTML_STRING, http.agenturl()));
 });
 
-/*
-    **Clock Endpoints**
-
-    ** Controller Support**
-        GET /controller/info -> JSON, app ID, watch support
-        GET controller/state -> JSON, subset of settings + connection state
-
-    ** Settings **
-        GET  /settings -> JSON, settings + connection state
-        POST /settings <- JSON, one or more settings to change.
-
-    ** Actions **
-        POST /actions <- JSON, action type, eg. reset, plus binary switches
-
-    ** Status **
-        GET /status -> JSON, connection state + should UI force an update
-*/
-
-api.get("/status", function(context) {
-    // A GET request made to /settings, so return the clock settings
-    local response = { "connected" : device.isconnected() };
-    if (stateUpdate) response.force <- true;
-    context.send(200, http.jsonencode(response, {"compact":true}));
-    stateUpdate = false;
-});
-
+// Serve up the settings JSON for a GET to /settings
 api.get("/settings", function(context) {
     // A GET request made to /settings, so return the clock settings
     context.send(200, encodePrefsForUI());
@@ -217,7 +235,7 @@ api.get("/settings", function(context) {
 api.post("/settings", function(context) {
     // A POST request made to /settings, so apply the requested setting
     try {
-        if (debug) server.log(context.req.rawbody);
+        if (prefs.debug) server.log(context.req.rawbody);
         local data = http.jsondecode(context.req.rawbody);
         local error = null;
 
@@ -231,7 +249,7 @@ api.post("/settings", function(context) {
                 }
 
                 prefs.hrmode = value;
-                if (debug) server.log("UI says change mode to " + (prefs.hrmode ? "24 hour" : "12 hour"));
+                if (prefs.debug) server.log("UI says change mode to " + (prefs.hrmode ? "24 hour" : "12 hour"));
                 device.send("clock.set.mode", prefs.hrmode);
             }
 
@@ -244,7 +262,7 @@ api.post("/settings", function(context) {
                 }
 
                 prefs.colon = value;
-                if (debug) server.log("UI says turn colon " + (prefs.colon ? "on" : "off"));
+                if (prefs.debug) server.log("UI says turn colon " + (prefs.colon ? "on" : "off"));
                 device.send("clock.set.colon", prefs.colon);
             }
 
@@ -257,7 +275,7 @@ api.post("/settings", function(context) {
                 }
 
                 prefs.flash = value;
-                if (debug) server.log("UI says turn colon flashing " + (prefs.flash ? "on" : "off"));
+                if (prefs.debug) server.log("UI says turn colon flashing " + (prefs.flash ? "on" : "off"));
                 device.send("clock.set.flash", prefs.flash);
             }
 
@@ -270,7 +288,7 @@ api.post("/settings", function(context) {
                 }
 
                 prefs.on = value;
-                if (debug) server.log("UI says turn display " + (prefs.on ? "on" : "off"));
+                if (prefs.debug) server.log("UI says turn display " + (prefs.on ? "on" : "off"));
                 device.send("clock.set.light", prefs.on);
             }
 
@@ -283,7 +301,7 @@ api.post("/settings", function(context) {
                 }
 
                 prefs.bst = value;
-                if (debug) server.log("UI says turn auto BST observance " + (prefs.bst ? "on" : "off"));
+                if (prefs.debug) server.log("UI says turn auto BST observance " + (prefs.bst ? "on" : "off"));
                 device.send("clock.set.bst", prefs.bst);
             }
 
@@ -299,7 +317,7 @@ api.post("/settings", function(context) {
                 }
 
                 prefs.brightness = value - 1;
-                if (debug) server.log(format("UI says set display brightness to %i", prefs.brightness));
+                if (prefs.debug) server.log(format("UI says set display brightness to %i", prefs.brightness));
                 device.send("clock.set.brightness", prefs.brightness);
             }
 
@@ -333,7 +351,7 @@ api.post("/settings", function(context) {
                     prefs.utcoffset = value.offset - 12;
                 }
 
-                if (debug) server.log("UI says turn world time mode " + (prefs.utc ? "on" : "off") + ", offset: " + prefs.utcoffset);
+                if (prefs.debug) server.log("UI says turn world time mode " + (prefs.utc ? "on" : "off") + ", offset: " + prefs.utcoffset);
                 device.send("clock.set.utc", { "state" : prefs.utc, "offset" : prefs.utcoffset });
             }
 
@@ -347,7 +365,7 @@ api.post("/settings", function(context) {
                 }
 
                 prefs.timer.isset = value;
-                if (debug) server.log("UI says " + (prefs.timer.isset ? "enable" : "disable") + " night mode");
+                if (prefs.debug) server.log("UI says " + (prefs.timer.isset ? "enable" : "disable") + " night mode");
                 device.send("clock.set.nightmode", prefs.timer.isset);
             }
 
@@ -421,7 +439,7 @@ api.post("/settings", function(context) {
                 prefs.timer.off.hour = value.dimmeroff.hour;
                 prefs.timer.off.min = value.dimmeroff.min;
 
-                if (debug) server.log("UI says set night time to start at " + format("%02i", prefs.timer.on.hour) + ":" + format("%02i", prefs.timer.on.min) + " and end at " + format("%02i", prefs.timer.off.hour) + ":" + format("%02i", prefs.timer.off.min));
+                if (prefs.debug) server.log("UI says set night time to start at " + format("%02i", prefs.timer.on.hour) + ":" + format("%02i", prefs.timer.on.min) + " and end at " + format("%02i", prefs.timer.off.hour) + ":" + format("%02i", prefs.timer.off.min));
                 device.send("clock.set.nighttime", prefs.timer);
             }
 
@@ -472,7 +490,7 @@ api.post("/settings", function(context) {
                             alarm.repeat <- value.repeat;
                         }
 
-                        if (debug) server.log("UI says set alarm for " + format("%02i", alarm.hour) + ":" + format("%02i", alarm.min) + " (repeat: " + (alarm.repeat ? "yes" : "no") + ")");
+                        if (prefs.debug) server.log("UI says set alarm for " + format("%02i", alarm.hour) + ":" + format("%02i", alarm.min) + " (repeat: " + (alarm.repeat ? "yes" : "no") + ")");
                         device.send("clock.set.alarm", alarm);
                         prefs.alarms.append(alarm);
                     } else if (value.action == "delete") {
@@ -485,7 +503,7 @@ api.post("/settings", function(context) {
                                 break;
                             }
                             
-                            if (debug) server.log("UI says delete alarm at index " + value.index);
+                            if (prefs.debug) server.log("UI says delete alarm at index " + value.index);
                             device.send("clock.clear.alarm", value.index);
                             prefs.alarms.remove(value.index);
                         } else {
@@ -502,7 +520,7 @@ api.post("/settings", function(context) {
                                 break;
                             }
                             
-                            if (debug) server.log("UI says silence alarm at index " + value.index);
+                            if (prefs.debug) server.log("UI says silence alarm at index " + value.index);
                             device.send("clock.stop.alarm", value.index);
                         } else {
                             error = reportAPIError("setalarm.delete");
@@ -521,7 +539,7 @@ api.post("/settings", function(context) {
 
         if (error != null) {
             context.send(400, error);
-            if (debug) server.error(error);
+            if (prefs.debug) server.error(error);
         } else {
             // Send the updated prefs back to the UI (may not be used)
             local ua = context.getHeader("user-agent");
@@ -549,7 +567,7 @@ api.post("/action", function(context) {
         if ("action" in data) {
             if (data.action == "reset") {
                 // A RESET message sent
-                resetPrefs();
+                reinitialisePrefs();
                 device.send("clock.set.prefs", prefs);
                 server.log("Clock settings reset");
                 context.send(200, http.jsonencode({"reset":true}));
@@ -558,11 +576,10 @@ api.post("/action", function(context) {
 
             if (data.action == "debug") {
                 // A DEBUG message sent
-                debug = data.debug;
-                prefs.debug = debug;
-                device.send("clock.set.debug", debug);
-                server.log("Debug mode " + (debug ? "on" : "off"));
-                context.send(200, http.jsonencode({"debug":debug}));
+                prefs.debug = data.debug;
+                device.send("clock.set.debug", prefs.debug);
+                server.log("Debug mode " + (prefs.debug ? "on" : "off"));
+                context.send(200, http.jsonencode({"debug":prefs.debug}));
                 server.save(prefs);
                 return;
             }
@@ -570,7 +587,7 @@ api.post("/action", function(context) {
             if (data.action = "world") {
                 // A SWITCH WORLD VIEW ON/OFF message sent
                 prefs.utc = ! prefs.utc;
-                if (debug) server.log("World time switched " + (prefs.utc ? "on" : "off"));
+                if (prefs.debug) server.log("World time switched " + (prefs.utc ? "on" : "off"));
                 context.send(200, http.jsonencode({"world":{"utc":prefs.utc}}));
                 erver.save(prefs);
                 return;
@@ -583,6 +600,15 @@ api.post("/action", function(context) {
         server.error(err);
         return;
     }
+});
+
+// Serve the clock status for a GET to /status
+api.get("/status", function(context) {
+    // A GET request made to /settings, so return the clock settings
+    local resp = { "connected" : device.isconnected() };
+    if (stateChange) resp.force <- true;
+    context.send(200, http.jsonencode(resp, {"compact" : true}));
+    stateChange = false;
 });
 
 // Any call to the endpoint /images is sent the correct PNG data
@@ -600,11 +626,11 @@ api.get("/images/([^/]*)", function(context) {
     context.send(200, image);
 });
 
-// Add Controller support endpoints
+// Controller support endpoints
 api.get("/controller/info", function(context) {
     // GET at /controller/info returns app info for Controller
     local info = { "appcode": APP_CODE,
-                   "watchsupported": "true" };  // False for now until Controller updated
+                   "watchsupported": "true" }; 
     context.send(200, http.jsonencode(info));
 });
 

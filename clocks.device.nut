@@ -2,24 +2,25 @@
 // Copyright 2014-19, Tony Smith
 
 // ********** IMPORTS **********
-// NOTE If you're not using Squinter or an equivalent tool, cut and 
-//      paste the named library's code in place of the appropriate line
+// NOTE If you're not using Squinter or an equivalent tool, cut and paste the named 
+//      file's code over the following lines. For Squinter users, you will need to change
+//      the path to the file in each #import statement 
 #import "../HT16K33Segment/HT16K33Segment.class.nut"
-#import "../generic/utilities.nut"
-#import "../generic/disconnect.nut"
+#import "../generic/utilities.nut"                      // Source code for this file here: https://github.com/smittytone/generic
+#import "../generic/disconnect.nut"                     // Source code for this file here: https://github.com/smittytone/generic
 
 
 // ********** CONSTANTS **********
 const DISCONNECT_TIMEOUT = 60;
-const RECONNECT_TIMEOUT = 15;
-const TICK_DURATION = 0.5;
-const TICK_TOTAL = 4;
-const HALF_TICK_TOTAL = 2;
-const ALARM_DURATION = 2;
-//const INITIAL_ANGLE = 0;
-const ALARM_NO_ACTION = 0;
-const ALARM_START_FLASH = 1;
-const ALARM_STOP_FLASH = 2;
+const RECONNECT_TIMEOUT  = 15;
+const TICK_DURATION      = 0.5;
+const TICK_TOTAL         = 4;
+const HALF_TICK_TOTAL    = 2;
+const ALARM_DURATION     = 2;
+const ALARM_STATE_OFF    = 0;
+const ALARM_STATE_ON     = 1;
+const ALARM_STATE_DONE   = 2;
+const LED_ANGLE          = 0;
 
 // ********** GLOBAL VARIABLES **********
 // Objects
@@ -27,7 +28,6 @@ local display = null;
 local tickTimer = null;
 local syncTimer = null;
 local settings = null;
-local alarms = [];
 
 // Numeric values
 local seconds = 0;
@@ -43,23 +43,19 @@ local disTime = 0;
 // Runtime flags
 local isDisconnected = false;
 local isConnecting = false;
-local isAdvanceSet = false;
 local isPM = false;
+local isAdvanceSet = false;
 local tickFlag = true;
 local debug = true;
 
 // Alarms
-// 'alarmstate' has three possible values: 
-//    ALARM_NO_ACTION
-//    ALARM_START_FLASH
-//    ALARM_STOP_FLASH
-local alarmState = ALARM_NO_ACTION;
-
+local alarmFlashState = ALARM_STATE_OFF;
+local alarmFlashFlag = false;
 
 // ********** TIME AND DISPLAY CONTROL FUNCTIONS **********
 function clockTick() {
-    // Set a trigger for the next tick. We do this so that the time taken
-    // to run the clock_tick code to minimise the drift
+    // This is the main clock loop
+    // Queue the function to run again in tickDuration seconds
     tickTimer = imp.wakeup(TICK_DURATION, clockTick);
 
     // Get the current time from the imp's RTC
@@ -94,6 +90,7 @@ function clockTick() {
     // Update the tick counter and flag
     tickCount = tickCount == TICK_TOTAL ? 0 : tickCount + 1;
     tickFlag = tickCount < HALF_TICK_TOTAL ? true : false;
+    alarmFlashFlag = !alarmFlashFlag;
 
     // ADDED IN 2.0.0
     // Check for Alarms
@@ -236,10 +233,11 @@ function displayTime() {
     // Update the screen with time and colon
     display.setColon(colonState).updateDisplay();
 
+    // ADDED IN 2.0.0
     // Check for alarms
-    if (alarmState == ALARM_START_FLASH) display.setDisplayFlash(2);
-    if (alarmState == ALARM_STOP_FLASH) display.setDisplayFlash(0);
-    alarmState = ALARM_NO_ACTION;
+    if (alarmFlashState == ALARM_STATE_ON) display.setDisplayFlash(2);
+    if (alarmFlashState == ALARM_STATE_DONE) display.setDisplayFlash(0);
+    alarmFlashState = ALARM_STATE_OFF;
 }
 
 function syncText() {
@@ -254,39 +252,41 @@ function syncText() {
 
 
 // ********** PREFERENCES FUNCTIONS **********
-function setPrefs(prefsTable) {
-    // Cancel the 'Sync' display timer if it has yet to fire
+function setPrefs(prefsData) {
+    // Log receipt of prefs data
     if (debug) server.log("Received preferences from agent");
+    
+    // Cancel the 'Sync' display timer if it has yet to fire
     if (syncTimer) imp.cancelwakeup(syncTimer);
     syncTimer = null;
 
     // Set the debug state
-    if ("debug" in prefsTable) setDebug(prefsTable.debug);
+    if ("debug" in prefsData) setDebug(prefsData.debug);
 
     // Parse the set-up data table provided by the agent
-    settings.mode = prefsTable.hrmode;
-    settings.bst = prefsTable.bst;
-    settings.flash = prefsTable.flash;
-    settings.colon = prefsTable.colon;
-    settings.utc = prefsTable.utc;
-    settings.utcoffset = prefsTable.utcoffset;
+    settings.mode = prefsData.hrmode;
+    settings.bst = prefsData.bst;
+    settings.flash = prefsData.flash;
+    settings.colon = prefsData.colon;
+    settings.utc = prefsData.utc;
+    settings.utcoffset = prefsData.utcoffset;
 
     // Set the display state
-    if (settings.on != prefsTable.on) setLight(prefsTable.on);
+    if (settings.on != prefsData.on) setLight(prefsData.on);
 
     // Set the brightness
-    if (settings.brightness != prefsTable.brightness) {
-        settings.brightness = prefsTable.brightness;
+    if (settings.brightness != prefsData.brightness) {
+        settings.brightness = prefsData.brightness;
         
         // Only set the brightness now if the display is on
-        if (settings.on) display.setBrightness(prefsTable.brightness);
+        if (settings.on) display.setBrightness(prefsData.brightness);
     }
 
-    // Clear the local list of alarms
-    if (alarms != null) alarms = [];
-    if (prefsTable.alarms.len() > 0) {
-        foreach (alarm in prefsTable.alarms) setAlarm(alarm);
-        if (debug) server.log(alarms.len() + " alarms added");
+    // ADDED IN 2.0.0
+    // Clear and reset the local list of alarms
+    if (settings.alarms != null) settings.alarms = [];
+    if (prefsData.alarms.len() > 0) {
+        foreach (alarm in prefsData.alarms) setAlarm(alarm);
     }
 
     // Only call clockTick() if we have come here *before*
@@ -310,16 +310,19 @@ function setBST(value) {
 
 function setUTC(value) {
     // This function is called when the app sets or unsets UTC
-    settings.utc = value.state;
-    settings.utcoffset = value.offset;
+    if ("offset" in value) settings.utcoffset = value.offset;
+    if ("state" in value) {
+        settings.utc = value.state;
+        if (debug) server.log("Setting UTC " + (value.state ? "on" : "off"));
+    }
 }
 
-function setBright(brightness) {
+function setBright(value) {
     // This function is called when the app changes the clock's brightness
     // 'brightness' is passed in from the agent as an integer
-    if (brightness < 0 || brightness > 15 || brightness == settings.brightness) return;
-    if (debug) server.log("Setting display brightness " + brightness);
-    settings.brightness = brightness;
+    if (value < 0 || value > 15 || value == settings.brightness) return;
+    if (debug) server.log("Setting display brightness " + value);
+    settings.brightness = value;
     
     // Tell the display(s) to change their brightness
     display.setBrightness(brightness);
@@ -372,6 +375,8 @@ function setDefaultPrefs() {
     settings.utc <- false;
     settings.utcoffset <- 0;
     settings.alarms <- [];
+    
+    // ADDED IN 2.1.0
     settings.timer <- { "on"  : { "hour" : 7,  "min" : 00 }, 
                         "off" : { "hour" : 22, "min" : 30 },
                         "isset" : false };
@@ -382,53 +387,57 @@ function setDefaultPrefs() {
 function checkAlarms() {
     // ADDED IN 2.0.0
     // Do we need to display an alarm screen flash?
-    if (alarms.len() > 0) {
-        foreach (alarm in alarms) {
+    if (settings.alarms.len() > 0) {
+        foreach (alarm in settings.alarms) {
             // Might an alarm be triggered?
             if (alarm.hour == hours && alarm.min == minutes) {
                 if (!alarm.on && !alarm.done) {
-                    // Set the flag to start the display flashing
-                    alarmState = ALARM_START_FLASH;
-                    if (debug) server.log("Alarm triggered");
+                    // The alarm is not on, but should be, so turn it on now
+                    alarm.on = true;
                     
-                    // Set the off time
+                    // Set the flag to start the display flashing
+                    alarmFlashState = ALARM_STATE_ON;
+                    
+                    // Set the time at which the alarm should be silenced automatically
                     alarm.offmins = alarm.min + ALARM_DURATION;
-                    alarm.offhour = alarm.hour
+                    alarm.offhour = alarm.hour;
                     if (alarm.offmins > 59) {
                         alarm.offmins = 60 - alarm.offmins;
                         alarm.offhour++;
                         if (alarm.offhour > 23) alarm.offhour = 24 - alarm.offhour;
                     }
 
-                    // Mark the alarm as active
-                    alarm.on = true;
+                    if (debug) server.log("Alarm triggered at " + format("%02i", hours) + ":" + format("%02i", minutes));
                 }
             }
 
-            // Might an alarm be disabled
+            // Check if it's time to turn an alarm off
             if (alarm.offhour == hours && alarm.offmins == minutes) {
                 // Clear the off times so we don't perform this code again
                 alarm.offhour = 99;
                 alarm.offmins = 99;
 
                 // Set the flag to stop the display flashing
-                alarmState = ALARM_STOP_FLASH;
-                if (debug) server.log("Alarm stopped");
+                alarmFlashState = ALARM_STATE_DONE;
                 
                 // Mark alarm for deletion if it's not on repeat
                 if (!alarm.repeat) alarm.done = true;
+
+                if (debug) server.log("Alarm stopped at " + format("%02i", hours) + ":" + format("%02i", minutes));
             }
         }
 
         // Tidy up the alarm list: delete any alarms that are done
         local i = 0;
         local flag = false;
-        while (i < alarms.len()) {
-            local alarm = alarms[i];
+        while (i < settings.alarms.len()) {
+            local alarm = settings.alarms[i];
             if (alarm.done == true) {
+                // Alarm is only done if it's not on repeat, so remove
+                // it and flag that we have made one or more deletions
                 flag = true;
-                alarms.remove(i);
-                if (debug) server.log("Alarm " + i + " deleted");
+                settings.alarms.remove(i);
+                if (debug) server.log("Alarm at " + format("%02i", alarm.hour) + ":" + format("%02i", alarm.min) + " removed");
             } else {
                 i++;
             }
@@ -441,68 +450,72 @@ function checkAlarms() {
 
 function sortAlarms() {
     // ADDED IN 2.0.0
-    // Sort the alarms into order
-    alarms.sort(function(a, b) {
-        // Sort by hour
+    // Sort the alarms into incidence order
+    settings.alarms.sort(function(a, b) {
+        // Match the hour first
         if (a.hour > b.hour) return 1;
         if (a.hour < b.hour) return -1;
 
-        // Sort by min
+        // Hours match, so try the minutes
         if (a.min > b.min) return 1;
         if (a.min < b.min) return -1;
 
-        // Alarms are identical
+        // The two alarms are the same
         return 0;
     });
-}
-
-function sortFunction(first, second) {
-  local tab = {"one" : 1, "two" : 2, "three" : 3, "four" : 4, "five" : 5};
-	
-  // Sort strings based on the numeric value in the table
-  local a = tab[first];
-  local b = tab[second];
-	
-  if (a > b) return 1;
-  if (a < b) return -1;
-  return 0;
 }
 
 function setAlarm(newAlarm) {
     // ADDED IN 2.0.0, UPDATED IN 2.1.0
     // Add a new alarm to the list
-    if (alarms.len() > 0) {
-        foreach (alarm in alarms) {
+    if (settings.alarms.len() > 0) {
+        // We have some alarms set, so check that the new one is not
+        // already on the list
+        foreach (alarm in settings.alarms) {
             if (alarm.hour == newAlarm.hour && alarm.min == newAlarm.min) {
-                // Alarm matches an existing one - is the use just updating repeat?
+                // Alarm matches an existing one - is the use just updating repeat? If so, bail
                 if (alarm.repeat == newAlarm.repeat) return;
+                
+                // Otherwise, make the change and update the agent
                 alarm.repeat = newAlarm.repeat;
-                if (debug) server.log("Alarm updated");
+                
+                // Update the agent's list
                 agent.send("update.alarms", alarms);
+
+                if (debug) server.log("Alarm at " + format("%02i", alarm.hour) + ":" + format("%02i", alarm.min) + " updated: repeat " + (alarm.repeat ? "on" : "off"));
                 return;
             }
         }
     }
 
+    // Add the new alarm to the list
     newAlarm.on <- false;
     newAlarm.done <- false;
     newAlarm.offmins <- 99;
     newAlarm.offhour <- 99;
-    alarms.append(newAlarm);
+    settings.alarms.append(newAlarm);
     sortAlarms();
-    if (debug) server.log("Alarm set (" + alarms.len() + ")");
-    agent.send("update.alarms", alarms);
+    if (debug) server.log("Alarm " + settings.alarms.len() + " added. Time: " + format("%02i", newAlarm.hour) + ":" + format("%02i", newAlarm.min));
+    
+    // Update the agent's list
+    agent.send("update.alarms", settings.alarms);
 }
 
 function clearAlarm(index) {
     // ADDED IN 2.1.0
-    // Delete the specified alarm
+    // Remove the alarm from the array; it's at index 'index'
     if (alarms.len() > 0) {
-        if (index < 0 || index > alarms.len() - 1) return;
-        local alarm = alarms[index];
+        // First, check that the value of 'index' is valid
+        if (index < 0 || index > settings.alarms.len() - 1) {
+            if (debug) server.error("clearAlarm() bad alarm index: " + index);
+            return;
+        }
+        
+        // Set the alarm's state to DONE so that it removed by the alarm handler, checkAlarms()
+        local alarm = settings.alarms[index];
         if (alarm.on) stopAlarm(index);
-        alarms.remove(index);
-        if (debug) server.log("Alarm " + index + " removed (" + alarms.len() + " left)");
+        settings.alarms.remove(index);
+        if (debug) server.log("Alarm at " + format("%02i", alarm.hour) + ":" + format("%02i", alarm.min) + " removed (" + settings.alarms.len() + " left)");
         agent.send("update.alarms", alarms);
     }
 }
@@ -510,14 +523,20 @@ function clearAlarm(index) {
 function stopAlarm(index) {
     // ADDED IN 2.1.0
     // Silence the specified alarm
-    if (alarms.len() > 0) {
-        if (index < 0 || index >= alarms.len()) return;
-        local alarm = alarms[index];
+    if (settings.alarms.len() > 0) {
+        // First, check that the value of 'index' is valid
+        if (index < 0 || index >= settings.alarms.len()) {
+            if (debug) server.error("stopAlarm() bad alarm index: " + index);
+            return;
+        }
+
+        local alarm = settings.alarms[index];
         if (alarm.on) {
             alarm.on = false;
             if (!alarm.repeat) alarm.done = true;
-            if (debug) server.log("Alarm " + index + " silenced");
-            alarmState = ALARM_STOP_FLASH;
+            alarmFlashState = ALARM_STATE_DONE;
+
+            if (debug) server.log("Alarm at " + format("%02i", alarm.hour) + ":" + format("%02i", alarm.min) + " silenced at " + format("%02i", hours) + ":" + format("%02i", minutes));
         }
     }
 }
@@ -619,7 +638,10 @@ display.init();
 // agent before then, the text will automatically be cleared
 // (and the timer cancelled)
 syncText();
-syncTimer = imp.wakeup(30.0, clockTick);
+syncTimer = imp.wakeup(30.0, function() {
+    syncTimer = null;
+    clockTick();
+});
 
 // Set up Agent notification response triggers
 // First, settings-related actions
