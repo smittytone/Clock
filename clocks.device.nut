@@ -2,12 +2,11 @@
 // Copyright 2014-19, Tony Smith
 
 // ********** IMPORTS **********
-// NOTE If you're not using Squinter or an equivalent tool, cut and paste the named 
-//      file's code over the following lines. For Squinter users, you will need to change
-//      the path to the file in each #import statement 
-#import "../HT16K33Segment/HT16K33Segment.class.nut"    // Source code for this file here: https://github.com/smittytone/HT16K33Segment
-#import "../generic/utilities.nut"                      // Source code for this file here: https://github.com/smittytone/generic
-#import "../generic/disconnect.nut"                     // Source code for this file here: https://github.com/smittytone/generic
+// If you are NOT using Squinter or a similar tool, replace the following #import statement(s)
+// with the contents of the named file(s):
+#import "../HT16K33Segment/HT16K33Segment.class.nut"    // Source code: https://github.com/smittytone/HT16K33Segment
+#import "../generic/utilities.nut"                      // Source code: https://github.com/smittytone/generic
+#import "../generic/disconnect.nut"                     // Source code: https://github.com/smittytone/generic
 
 
 // ********** CONSTANTS **********
@@ -613,9 +612,9 @@ function discHandler(event) {
 // ********** START OF PROGRAM **********
 
 // Load in generic boot message code
-// NOTE If you're not using Squinter or an equivalent tool,
-// cut and paste bootmessage.nut's code in place of the following line
-#include "../generic/bootmessage.nut"
+// If you are NOT using Squinter or a similar tool, replace the following #import statement(s)
+// with the contents of the named file(s):
+#import "../generic/bootmessage.nut"        // Source code: https://github.com/smittytone/generic
 
 // Load in default prefs
 setDefaultPrefs();

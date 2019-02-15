@@ -4,16 +4,16 @@
 // ********** IMPORTS **********
 #require "Rocky.class.nut:2.0.2"
 
-// If you are NOT using Squinter or a similar tool, replace the following #import statements
-// with the contents of the named files: img_low.nut, img_high.nut, silence_img.nut, delete_img.nut
-// and clock_ui.html. Source code for these files is here: https://github.com/smittytone/Clock
-#import "img_delete.nut"
-#import "img_silence.nut"
-#import "img_low.nut"
-#import "img_high.nut"
+// If you are NOT using Squinter or a similar tool, replace the following #import statement(s)
+// with the contents of the named file(s):
+#import "img_delete.nut"            // Source code: https://github.com/smittytone/Clock
+#import "img_silence.nut"           // Source code: https://github.com/smittytone/Clock
+#import "img_low.nut"               // Source code: https://github.com/smittytone/Clock
+#import "img_high.nut"              // Source code: https://github.com/smittytone/Clock
 const HTML_STRING = @"
 #import "clock_ui.html"
-";
+";                                  // Source code: https://github.com/smittytone/Clock
+
 
 // ********** CONSTANTS **********
 const APP_CODE = "B14E7692-6D05-4AC6-B66A-AB40C98E3D5B";
@@ -118,10 +118,8 @@ function reportAPIError(func) {
 function debugAPI(context, next) {
     // Display a UI API activity report
     if (prefs.debug) {
-        server.log("API received a request at " + time());
-        server.log("  VERB: " + context.req.method.toupper());
-        server.log("  PATH: " + context.req.path.tolower());
-        if (context.req.rawbody.len() > 0) server.log("  BODY: " + context.req.rawbody.tolower());
+        server.log("API received a request at " + time() + ": " + context.req.method.toupper() + " @ " + context.req.path.tolower());
+        if (context.req.rawbody.len() > 0) server.log("Request body: " + context.req.rawbody.tolower());
     }
     
     // Invoke the next middleware
