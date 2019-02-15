@@ -5,14 +5,12 @@
 #require "Rocky.class.nut:2.0.2"
 
 // If you are NOT using Squinter or a similar tool, replace the following #import statements
-// with the contents of the named files (clock_ui.html, silence_img.nut and delete_img.nut)
-// Source code for these files here: https://github.com/smittytone/Clock
+// with the contents of the named files: img_low.nut, img_high.nut, silence_img.nut, delete_img.nut
+// and clock_ui.html. Source code for these files is here: https://github.com/smittytone/Clock
 #import "img_delete.nut"
 #import "img_silence.nut"
 #import "img_low.nut"
 #import "img_high.nut"
-// If you are NOT using Squinter or a similar tool, replace the following 
-// #import statement with the contents of the named file (clock_ui.html)
 const HTML_STRING = @"
 #import "clock_ui.html"
 ";

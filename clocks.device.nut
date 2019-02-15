@@ -5,7 +5,7 @@
 // NOTE If you're not using Squinter or an equivalent tool, cut and paste the named 
 //      file's code over the following lines. For Squinter users, you will need to change
 //      the path to the file in each #import statement 
-#import "../HT16K33Segment/HT16K33Segment.class.nut"
+#import "../HT16K33Segment/HT16K33Segment.class.nut"    // Source code for this file here: https://github.com/smittytone/HT16K33Segment
 #import "../generic/utilities.nut"                      // Source code for this file here: https://github.com/smittytone/generic
 #import "../generic/disconnect.nut"                     // Source code for this file here: https://github.com/smittytone/generic
 
@@ -504,7 +504,7 @@ function setAlarm(newAlarm) {
 function clearAlarm(index) {
     // ADDED IN 2.1.0
     // Remove the alarm from the array; it's at index 'index'
-    if (alarms.len() > 0) {
+    if (settings.alarms.len() > 0) {
         // First, check that the value of 'index' is valid
         if (index < 0 || index > settings.alarms.len() - 1) {
             if (debug) server.error("clearAlarm() bad alarm index: " + index);
