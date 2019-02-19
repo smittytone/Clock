@@ -324,7 +324,7 @@ function setBright(value) {
     settings.brightness = value;
     
     // Tell the display(s) to change their brightness
-    display.setBrightness(brightness);
+    display.setBrightness(value);
 }
 
 function setFlash(value) {
