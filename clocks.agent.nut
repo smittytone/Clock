@@ -9,6 +9,7 @@
 #import "img_delete.nut"            // Source code: https://github.com/smittytone/Clock
 #import "img_silence.nut"           // Source code: https://github.com/smittytone/Clock
 #import "img_low.nut"               // Source code: https://github.com/smittytone/Clock
+#import "img_mid.nut"               // Source code: https://github.com/smittytone/Clock
 #import "img_high.nut"              // Source code: https://github.com/smittytone/Clock
 const HTML_STRING = @"
 #import "clock_ui.html"
@@ -616,6 +617,7 @@ api.get("/images/([^/]*)", function(context) {
     local name = path[path.len() - 1];
     local image = DELETE_PNG;
     if (name == "low.png") image = LOW_PNG;
+    if (name == "mid.png") image = MID_PNG;
     if (name == "high.png") image = HIGH_PNG;
     if (name == "silence.png") image = SILENCE_PNG;
     

@@ -97,10 +97,11 @@
                         <table width='100%%'>
                             <tr>
                                 <td width='20%%' align='left'><div class='biconlow'><span></span></div></td>
-                                <td width='60%%' align='center'><div class='brightness-status subslider'>Brightness: <span></span></div></td>
-                                <td width='20%%' align='right'><div class='biconhih'><span></span></div></td>
+                                <td width='60%%' align='center'><div class='biconmid'><span></span></div></td>
+                                <td width='20%%' align='right'><div class='biconhigh'><span></span></div></td>
                             </tr>
                         </table>
+                        <p class='brightness-status subslider text-center'>Brightness: <span></span></p>
                         <hr />
                         <p class='utc-head subhead text-center'>World Time (<span>Disabled</span>)</p>
                         <input type='range' class='slider' name='utcs' id='utcs' value='0' min='0' max='24' />
@@ -205,7 +206,8 @@
 
         // Set images
         $('.biconlow span').html('<img src=""' + agenturl + '/images/low.png' + '"" width=""20"" />');
-        $('.biconhih span').html('<img src=""' + agenturl + '/images/high.png' + '"" width=""20"" />');
+        $('.biconmid span').html('<img src=""' + agenturl + '/images/mid.png' + '"" width=""20"" />');
+        $('.biconhigh span').html('<img src=""' + agenturl + '/images/high.png' + '"" width=""20"" />');
         $('.advanced').hide();
 
         // Reset text fields
