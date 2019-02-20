@@ -256,7 +256,7 @@ function setPrefs(prefsData) {
     if (debug) server.log("Received preferences from agent");
     
     // Cancel the 'Sync' display timer if it has yet to fire
-    if (syncTimer) imp.cancelwakeup(syncTimer);
+    if (syncTimer != null) imp.cancelwakeup(syncTimer);
     syncTimer = null;
 
     // Set the debug state
