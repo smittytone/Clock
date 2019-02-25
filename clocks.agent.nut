@@ -6,14 +6,16 @@
 
 // If you are NOT using Squinter or a similar tool, replace the following #import statement(s)
 // with the contents of the named file(s):
-#import "img_delete.nut"            // Source code: https://github.com/smittytone/Clock
-#import "img_silence.nut"           // Source code: https://github.com/smittytone/Clock
-#import "img_low.nut"               // Source code: https://github.com/smittytone/Clock
-#import "img_mid.nut"               // Source code: https://github.com/smittytone/Clock
-#import "img_high.nut"              // Source code: https://github.com/smittytone/Clock
+#import "../generic/simpleslack.nut"        // Source code: https://github.com/smittytone/generic
+#import "../generic/crashReporter.nut"      // Source code: https://github.com/smittytone/generic
+#import "img_delete.nut"                    // Source code: https://github.com/smittytone/Clock
+#import "img_silence.nut"                   // Source code: https://github.com/smittytone/Clock
+#import "img_low.nut"                       // Source code: https://github.com/smittytone/Clock
+#import "img_mid.nut"                       // Source code: https://github.com/smittytone/Clock
+#import "img_high.nut"                      // Source code: https://github.com/smittytone/Clock
 const HTML_STRING = @"
 #import "clock_ui.html"
-";                                  // Source code: https://github.com/smittytone/Clock
+";                                          // Source code: https://github.com/smittytone/Clock
 
 
 // ********** CONSTANTS **********
@@ -26,6 +28,7 @@ const ALARM_DURATION = 2;
 local settings = null;
 local api = null;
 local stateChange = false;
+local slack = null;
 
 
 // ********** FUNCTIONS **********
@@ -128,6 +131,8 @@ function debugAPI(context, next) {
 }
 
 // ********** RUNTIME START **********
+
+#import "~/Dropbox/Programming/Imp/codes/slack.nut"
 
 // Initialize the clock's preferences - we will read in saved values, if any, next
 initialisePrefs();

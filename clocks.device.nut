@@ -7,7 +7,7 @@
 #import "../HT16K33Segment/HT16K33Segment.class.nut"    // Source code: https://github.com/smittytone/HT16K33Segment
 #import "../generic/utilities.nut"                      // Source code: https://github.com/smittytone/generic
 #import "../generic/disconnect.nut"                     // Source code: https://github.com/smittytone/generic
-
+#import "../generic/crashReporter.nut"                  // Source code: https://github.com/smittytone/generic
 
 // ********** CONSTANTS **********
 const DISCONNECT_TIMEOUT = 60;
@@ -615,6 +615,9 @@ function discHandler(event) {
 // If you are NOT using Squinter or a similar tool, replace the following #import statement(s)
 // with the contents of the named file(s):
 #import "../generic/bootmessage.nut"        // Source code: https://github.com/smittytone/generic
+
+// Set up the crash reporter
+crashReporter.init();
 
 // Load in default prefs
 setDefaultPrefs();
