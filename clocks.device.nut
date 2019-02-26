@@ -4,10 +4,11 @@
 // ********** IMPORTS **********
 // If you are NOT using Squinter or a similar tool, replace the following #import statement(s)
 // with the contents of the named file(s):
-#import "../HT16K33Segment/HT16K33Segment.class.nut"    // Source code: https://github.com/smittytone/HT16K33Segment
-#import "../generic/utilities.nut"                      // Source code: https://github.com/smittytone/generic
-#import "../generic/disconnect.nut"                     // Source code: https://github.com/smittytone/generic
-#import "../generic/crashReporter.nut"                  // Source code: https://github.com/smittytone/generic
+#import "../HT16K33Segment/HT16K33Segment.class.nut"    // Source: https://github.com/smittytone/HT16K33Segment
+#import "../generic/utilities.nut"                      // Source: https://github.com/smittytone/generic
+#import "../generic/disconnect.nut"                     // Source: https://github.com/smittytone/generic
+#import "../generic/crashReporter.nut"                  // Source: https://github.com/smittytone/generic
+
 
 // ********** CONSTANTS **********
 const DISCONNECT_TIMEOUT = 60;
@@ -20,6 +21,7 @@ const ALARM_STATE_OFF    = 0;
 const ALARM_STATE_ON     = 1;
 const ALARM_STATE_DONE   = 2;
 const LED_ANGLE          = 0;
+
 
 // ********** GLOBAL VARIABLES **********
 // Objects
@@ -50,6 +52,7 @@ local debug = true;
 // Alarms
 local alarmFlashState = ALARM_STATE_OFF;
 local alarmFlashFlag = false;
+
 
 // ********** TIME AND DISPLAY CONTROL FUNCTIONS **********
 function clockTick() {
@@ -616,6 +619,7 @@ function discHandler(event) {
 // with the contents of the named file(s):
 #import "../generic/bootmessage.nut"        // Source code: https://github.com/smittytone/generic
 
+// ADDED IN 2.1.0
 // Set up the crash reporter
 crashReporter.init();
 

@@ -6,16 +6,16 @@
 
 // If you are NOT using Squinter or a similar tool, replace the following #import statement(s)
 // with the contents of the named file(s):
-#import "../generic/simpleslack.nut"        // Source code: https://github.com/smittytone/generic
-#import "../generic/crashReporter.nut"      // Source code: https://github.com/smittytone/generic
-#import "img_delete.nut"                    // Source code: https://github.com/smittytone/Clock
-#import "img_silence.nut"                   // Source code: https://github.com/smittytone/Clock
-#import "img_low.nut"                       // Source code: https://github.com/smittytone/Clock
-#import "img_mid.nut"                       // Source code: https://github.com/smittytone/Clock
-#import "img_high.nut"                      // Source code: https://github.com/smittytone/Clock
+#import "../generic/simpleslack.nut"        // Source: https://github.com/smittytone/generic
+#import "../generic/crashReporter.nut"      // Source: https://github.com/smittytone/generic
+#import "img_delete.nut"                    // Source: https://github.com/smittytone/Clock
+#import "img_silence.nut"                   // Source: https://github.com/smittytone/Clock
+#import "img_low.nut"                       // Source: https://github.com/smittytone/Clock
+#import "img_mid.nut"                       // Source: https://github.com/smittytone/Clock
+#import "img_high.nut"                      // Source: https://github.com/smittytone/Clock
 const HTML_STRING = @"
 #import "clock_ui.html"
-";                                          // Source code: https://github.com/smittytone/Clock
+";                                          // Source: https://github.com/smittytone/Clock
 
 
 // ********** CONSTANTS **********
@@ -132,6 +132,8 @@ function debugAPI(context, next) {
 
 // ********** RUNTIME START **********
 
+// ADDED IN 2.1.0
+// Load up the crash reporter
 #import "~/Dropbox/Programming/Imp/codes/slack.nut"
 
 // Initialize the clock's preferences - we will read in saved values, if any, next
