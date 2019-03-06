@@ -41,13 +41,13 @@ Visit your cløck’s agent URL for a control interface.
 
 ## Release Notes ##
 
-- 2.1.0 &mdash; *Unreleased*
+- 2.1.0 &mdash; *6 March 2019*
     - Sync agent and device code with [MatrixClock](https://github.com/smittytone/MatrixClock)
     - Add night mode
     - Revise alarms code
     - Add API debugging
     - Remove redundant agent-side server.save() result checks
-    - Update dependencies (Bootstrap 4.3.0; Rocky 2.0.0; HT16K33Segment 2.0.0)
+    - Update dependencies (Bootstrap 4.3.0; Rocky 2.0.2; HT16K33Segment 2.0.0)
 - 2.0.0 &mdash; *1 November 2018*
     - Update to [Bootstrap 4.1.3](https://getbootstrap.com/)
     - Completely redesign agent API
@@ -62,7 +62,7 @@ Visit your cløck’s agent URL for a control interface.
     - Add [DisconnectionManager](https://github.com/smittytone/generic/blob/master/disconnect.nut) support
     - Upgrade [Rocky](https://developer.electricimp.com/libraries/utilities/rocky) to 2.0.1
     - Update to [JQuery 3.3.1](https://jquery.com)
-    - Prevent Ajax XHR cacheing
+    - Prevent Ajax XHR caching
 - 1.3.0
     - Minor changes and bug fixes.
 
