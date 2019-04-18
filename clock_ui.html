@@ -198,7 +198,7 @@
         </div>
     </div>
 
-    <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js'></script>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js'></script>
     <script>
         // Variables
         var agenturl = '%s';
@@ -246,7 +246,7 @@
         slider.addEventListener('mouseup', updateUTC);
         slider.addEventListener('touchend', updateUTC);
         $('.utc-status span').text(slider.value - 12);
-        
+
         // Configure Show/Hide Advanced Settings toggle
         $('.showhide').click(function(){
             $('.advanced').toggle();
@@ -269,7 +269,7 @@
         function updateReadout(data) {
             // Extract the current settings from the returned JSON and update the UI accordingly
             var s = JSON.parse(data);
-            
+
             // Set the checkboxes
             document.getElementById('mode').checked = s['mode'];
             document.getElementById('bst').checked = s['bst'];
@@ -304,7 +304,7 @@
             u = parseInt(s['timer']['off']['min']);
             $('#dimmerendmin').val(u);
             $('.night-mode-head span').text(s['timer']['isset'] ? 'Enabled' : 'Disabled');
-            
+
             // Set the line indicating whether the clock is connected to the server or not
             showState(s['isconnected']);
 
@@ -333,13 +333,13 @@
 
                     // Pad out the minutes if necessary
                     let m = (alarm.min < 10 ? '0' : '') + alarm.min.toString();
-                    
+
                     s = s + '<tr><td width=""10%%"" align=""center"">' + (i + 1).toString() + '</td><td width=""50%%"" align=""center"">' + alarm.hour + ':' + m + '</td><td width=""20%%"" align=""center"">' + (alarm.repeat ? 'Yes' : 'No') + '</td><td width=""20%%"" align=""center""><input type=""image"" src=""' + agenturl + '/images/silence.png"" width=""20"" id=""silencealarm' + i.toString() + '"">&nbsp;<input type=""image"" src=""' + agenturl + '/images/delete.png"" width=""20"" id=""deletealarm' + i.toString() + '""></td></tr>';
                 }
 
                 s = s + '</table>';
                 $('.alarm-list span').html(s);
-                
+
                 // Set each delete button shown to point to the same target function
                 for (var i = 0 ; i < alarms.length ; i++) {
                     let s = 'deletealarm' + i.toString();
@@ -404,8 +404,8 @@
                 }
             });
         }
-        
-        
+
+
         function setMode() {
             updateSettings({'setmode':document.getElementById('mode').checked});
         }
@@ -439,7 +439,7 @@
         function setUTC() {
             updateSettings({'setutc':{'state':document.getElementById('utc').checked, 'offset':$('#utcs').val()}});
         }
-        
+
         function setNightTimes(e){
             // Set the night mode duration
             e.preventDefault();
@@ -452,7 +452,7 @@
                 resetDimmerFields(1);
                 return;
             }
-            
+
             if (sm < 0 || sm > 59) {
                 resetDimmerFields(2);
                 return;
@@ -462,12 +462,12 @@
                 resetDimmerFields(4);
                 return;
             }
-            
+
             if (em < 0 || em > 59) {
                 resetDimmerFields(8);
                 return;
             }
-            
+
             updateSettings({'setdimmer':{'dimmeron':{'hour':sh, 'min':sm},
                                          'dimmeroff':{'hour':eh, 'min':em}}});
         }
@@ -506,7 +506,7 @@
             // Trigger a settings reset
             doAction({'action':'reset'});
         }
-        
+
         function doReboot() {
             // Trigger a device restart
             doAction({'action':'reboot'});
@@ -528,7 +528,7 @@
                 data: JSON.stringify(data),
                 cache: false,
                 success: function(response) {
-                    // Get updated settings to refresh the UI 
+                    // Get updated settings to refresh the UI
                     getState(updateReadout);
                 },
                 error: function(xhr, textStatus, error) {
