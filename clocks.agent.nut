@@ -57,14 +57,14 @@ function encodePrefsForUI() {
                    "on"          : settings.on,
                    "debug"       : settings.debug,
                    "isconnected" : device.isconnected(),
-                   // ADDED IN 2.1.0: 
+                   // ADDED IN 2.1.0:
                    // Times to disable clock (eg. over night)
                    "timer"       : { "on"  : { "hour" : settings.timer.on.hour,  "min"  : settings.timer.on.min },
                                      "off" : { "hour" : settings.timer.off.hour, "min" : settings.timer.off.min },
                                      "isset" : settings.timer.isset },
-                    "alarms"      : settings.alarms
+                   "alarms"      : settings.alarms
                 };
-    
+
     return http.jsonencode(data, {"compact":true});
 }
 
@@ -125,7 +125,7 @@ function debugAPI(context, next) {
         server.log("API received a request at " + time() + ": " + context.req.method.toupper() + " @ " + context.req.path.tolower());
         if (context.req.rawbody.len() > 0) server.log("Request body: " + context.req.rawbody.tolower());
     }
-    
+
     // Invoke the next middleware
     next();
 }
@@ -356,7 +356,7 @@ api.post("/settings", function(context) {
 
                 device.send("clock.set.utc", { "state" : settings.utc, "offset" : settings.utcoffset });
                 if (settings.debug) server.log("UI says turn world time mode " + (settings.utc ? "on" : "off") + ", offset: " + settings.utcoffset);
-                
+
             }
 
             // ADDED IN 2.1.0
@@ -464,7 +464,7 @@ api.post("/settings", function(context) {
                         }
 
                         local alarm = {};
-                        
+
                         if ("hour" in value) {
                             try {
                                 // Check that hour value can be converted to an integer
@@ -474,7 +474,7 @@ api.post("/settings", function(context) {
                                 break;
                             }
                         }
-                        
+
                         if ("min" in value) {
                             try {
                                 // Check that minute value can be converted to an integer
@@ -506,7 +506,7 @@ api.post("/settings", function(context) {
                                 error = reportAPIError("setalarm.delete.index");
                                 break;
                             }
-                            
+
                             device.send("clock.clear.alarm", value.index);
                             settings.alarms.remove(value.index);
                             if (settings.debug) server.log("UI says delete alarm at index " + value.index);
@@ -523,7 +523,7 @@ api.post("/settings", function(context) {
                                 error = reportAPIError("setalarm.silence.index");
                                 break;
                             }
-                            
+
                             device.send("clock.stop.alarm", value.index);
                             if (settings.debug) server.log("UI says silence alarm at index " + value.index);
                         } else {
@@ -627,7 +627,7 @@ api.get("/images/([^/]*)", function(context) {
     if (name == "mid.png") image = MID_PNG;
     if (name == "high.png") image = HIGH_PNG;
     if (name == "silence.png") image = SILENCE_PNG;
-    
+
     context.setHeader("Content-Type", "image/png");
     context.send(200, image);
 });
@@ -636,7 +636,7 @@ api.get("/images/([^/]*)", function(context) {
 api.get("/controller/info", function(context) {
     // GET at /controller/info returns app info for Controller
     local info = { "appcode": APP_CODE,
-                   "watchsupported": "true" }; 
+                   "watchsupported": "true" };
     context.send(200, http.jsonencode(info));
 });
 
