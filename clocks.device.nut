@@ -123,7 +123,7 @@ function shouldShowDisplay() {
     // Assume we will enable the display
     local shouldShow = true;
 
-    // Should we disable the advance? Only if it's set and we've hit the start or end end 
+    // Should we disable the advance? Only if it's set and we've hit the start or end end
     // of the night period
     // NOTE 'isAdvanceSet' is ONLY set if 'settings.timer.isset' is TRUE
     if (isAdvanceSet) {
@@ -138,10 +138,10 @@ function shouldShowDisplay() {
     local end = settings.timer.off.hour * 60 + settings.timer.off.min;
     local now = hours * 60 + minutes;
     local delta = end - start;
-    
+
     // End and start times are identical
     if (delta == 0) return !isAdvanceSet;
-    
+
     if (delta > 0) {
         if (now >= start && now < end) shouldShow = false;
     } else {
@@ -257,7 +257,7 @@ function syncText() {
 function setPrefs(prefsData) {
     // Log receipt of prefs data
     if (debug) server.log("Received preferences from agent");
-    
+
     // Cancel the 'Sync' display timer if it has yet to fire
     if (syncTimer != null) imp.cancelwakeup(syncTimer);
     syncTimer = null;
@@ -279,7 +279,7 @@ function setPrefs(prefsData) {
     // Set the brightness
     if (settings.brightness != prefsData.brightness) {
         settings.brightness = prefsData.brightness;
-        
+
         // Only set the brightness now if the display is on
         if (settings.on) display.setBrightness(prefsData.brightness);
     }
@@ -325,7 +325,7 @@ function setBright(value) {
     if (value < 0 || value > 15 || value == settings.brightness) return;
     if (debug) server.log("Setting display brightness " + value);
     settings.brightness = value;
-    
+
     // Tell the display(s) to change their brightness
     display.setBrightness(value);
 }
@@ -348,7 +348,7 @@ function setLight(value) {
     // This function is called when the app turns the display on or off
     // 'value' is passed in from the agent as a bool
     if (debug) server.log("Setting light " + (value ? "on" : "off"));
-    
+
     if (value != settings.on) {
         settings.on = value;
         if (value) {
@@ -377,9 +377,9 @@ function setDefaultPrefs() {
     settings.utc <- false;
     settings.utcoffset <- 0;
     settings.alarms <- [];
-    
+
     // ADDED IN 2.1.0
-    settings.timer <- { "on"  : { "hour" : 7,  "min" : 00 }, 
+    settings.timer <- { "on"  : { "hour" : 7,  "min" : 00 },
                         "off" : { "hour" : 22, "min" : 30 },
                         "isset" : false };
 }
@@ -396,10 +396,10 @@ function checkAlarms() {
                 if (!alarm.on && !alarm.done) {
                     // The alarm is not on, but should be, so turn it on now
                     alarm.on = true;
-                    
+
                     // Set the flag to start the display flashing
                     alarmFlashState = ALARM_STATE_ON;
-                    
+
                     // Set the time at which the alarm should be silenced automatically
                     alarm.offmins = alarm.min + ALARM_DURATION;
                     alarm.offhour = alarm.hour;
@@ -421,7 +421,7 @@ function checkAlarms() {
 
                 // Set the flag to stop the display flashing
                 alarmFlashState = ALARM_STATE_DONE;
-                
+
                 // Mark alarm for deletion if it's not on repeat
                 if (!alarm.repeat) alarm.done = true;
 
@@ -477,10 +477,10 @@ function setAlarm(newAlarm) {
             if (alarm.hour == newAlarm.hour && alarm.min == newAlarm.min) {
                 // Alarm matches an existing one - is the use just updating repeat? If so, bail
                 if (alarm.repeat == newAlarm.repeat) return;
-                
+
                 // Otherwise, make the change and update the agent
                 alarm.repeat = newAlarm.repeat;
-                
+
                 // Update the agent's list
                 agent.send("update.alarms", settings.alarms);
 
@@ -498,7 +498,7 @@ function setAlarm(newAlarm) {
     settings.alarms.append(newAlarm);
     sortAlarms();
     if (debug) server.log("Alarm " + settings.alarms.len() + " added. Time: " + format("%02i", newAlarm.hour) + ":" + format("%02i", newAlarm.min));
-    
+
     // Update the agent's list
     agent.send("update.alarms", settings.alarms);
 }
@@ -512,7 +512,7 @@ function clearAlarm(index) {
             if (debug) server.error("clearAlarm() bad alarm index: " + index);
             return;
         }
-        
+
         // Set the alarm's state to DONE so that it removed by the alarm handler, checkAlarms()
         local alarm = settings.alarms[index];
         if (alarm.on) stopAlarm(index);
@@ -552,7 +552,7 @@ function setNight(value) {
 
     // Just set the preference because it will be applied almost immediately
     // via the 'clockTick()' loop
-    settings.timer.isset = value;     
+    settings.timer.isset = value;
 
     // Disable the timer advance setting as it's only relevant if night mode is
     // on AND it has been triggered since night mode was enabled
@@ -577,7 +577,7 @@ function setNightTime(data) {
     settings.timer.on.min = data.on.min;
     settings.timer.off.hour = data.off.hour;
     settings.timer.off.min = data.off.min;
-    
+
     if (debug) server.log("Night mode to start at " + format("%02i", settings.timer.on.hour) + ":" + format("%02i", settings.timer.on.min) + " and end at " + format("%02i", settings.timer.off.hour) + ":" + format("%02i", settings.timer.off.min));
 }
 
@@ -601,7 +601,7 @@ function discHandler(event) {
             agent.send("clock.get.prefs", 1);
             isDisconnected = false;
             isConnecting = false;
-            
+
             if (disTime != 0) {
                 local delta = event.ts - disTime;
                 if (debug) server.log("Connection Manager: disconnection duration " + delta + " seconds");
@@ -669,6 +669,19 @@ agent.on("clock.set.nighttime", setNightTime);
 // Next, other actions
 agent.on("clock.do.reboot", function(dummy) {
     imp.reset();
+});
+
+// impOS Polite Deployment
+server.onshutdown(function(reason) {
+    // Trigger the crash reporter
+    local reasons = ["new Squirrel", "impOS Update", "other"];
+    agent.send("crash.reporter.relay.debug.error", "Polite Deployment triggered -- reason " + reasons[reason]);
+    server.flush(10);
+
+    // Trigger the update itself
+    imp.wakeup(10, function() {
+        server.restart();
+    });
 });
 
 // Get preferences from server

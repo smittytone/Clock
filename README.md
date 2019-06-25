@@ -1,4 +1,4 @@
-# cløck 2.1.1 #
+# cløck 2.1.2 #
 
 A very simple four-digit timepiece developed using the [Electric Imp Platform](https://electricimp.com). It makes use of the [Adafruit 0.56-inch 4-digit, 7-segment LED display](http://www.adafruit.com/products/878), which is based on the Holtek HT16K33 controller.
 
@@ -41,6 +41,8 @@ Visit your cløck’s agent URL for a control interface.
 
 ## Release Notes ##
 
+- 2.1.2 &mdash; *unreleased*
+    - Support polite deployments
 - 2.1.1 &mdash; *18 April 2019*
     - Update JQuery to 3.4.0
 - 2.1.0 &mdash; *6 March 2019*
