@@ -43,6 +43,7 @@ Visit your cløck’s agent URL for a control interface.
 
 - 2.1.2 &mdash; *unreleased*
     - Support polite deployments
+    - Update JQuery, Bootstrap, Simpleslack, Bootmessage
 - 2.1.1 &mdash; *18 April 2019*
     - Update JQuery to 3.4.0
 - 2.1.0 &mdash; *6 March 2019*
