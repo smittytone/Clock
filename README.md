@@ -41,7 +41,7 @@ Visit your cløck’s agent URL for a control interface.
 
 ## Release Notes ##
 
-- 2.1.2 &mdash; *unreleased*
+- 2.1.2 &mdash; *5 September 2019*
     - Support polite deployments
     - Update Jquery to 3.4.1, Boostrap to 4.3.1, Simpleslack to 1.0.1, Bootmessage to 2.2.2
 - 2.1.1 &mdash; *18 April 2019*
