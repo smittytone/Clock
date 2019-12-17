@@ -1,4 +1,4 @@
-# cløck 2.1.2 #
+# cløck 2.1.3 #
 
 A very simple four-digit timepiece developed using the [Electric Imp Platform](https://electricimp.com). It makes use of the [Adafruit 0.56-inch 4-digit, 7-segment LED display](http://www.adafruit.com/products/878), which is based on the Holtek HT16K33 controller.
 
@@ -41,26 +41,28 @@ Visit your cløck’s agent URL for a control interface.
 
 ## Release Notes ##
 
-- 2.1.2 &mdash; *5 September 2019*
+- 2.1.3 *Unreleased*
+    - Support Rocky 3.0.0.
+- 2.1.2 *5 September 2019*
     - Support polite deployments
     - Update Jquery to 3.4.1, Boostrap to 4.3.1, Simpleslack to 1.0.1, Bootmessage to 2.2.2
-- 2.1.1 &mdash; *18 April 2019*
+- 2.1.1 *18 April 2019*
     - Update JQuery to 3.4.0
-- 2.1.0 &mdash; *6 March 2019*
+- 2.1.0 *6 March 2019*
     - Sync agent and device code with [MatrixClock](https://github.com/smittytone/MatrixClock)
     - Add night mode
     - Revise alarms code
     - Add API debugging
     - Remove redundant agent-side server.save() result checks
     - Update dependencies (Bootstrap 4.3.0; Rocky 2.0.2; HT16K33Segment 2.0.0)
-- 2.0.0 &mdash; *1 November 2018*
+- 2.0.0 *1 November 2018*
     - Update to [Bootstrap 4.1.3](https://getbootstrap.com/)
     - Completely redesign agent API
     - Add alarms
     - Controller support
     - Fix CSS bugs
     - Display a leading zero in 24-hour mode (times below 10am)
-- 1.4.0 &mdash; *13 June 2018*
+- 1.4.0 *13 June 2018*
     - Update to [Bootstrap 4.1.1](https://getbootstrap.com/)
     - Update Web UI based on Bootstrap
     - Separate out Web UI into own file for clarity
