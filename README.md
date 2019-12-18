@@ -41,7 +41,7 @@ Visit your cløck’s agent URL for a control interface.
 
 ## Release Notes ##
 
-- 2.1.3 *Unreleased*
+- 2.1.3 *18 December 2019*
     - Support Rocky 3.0.0.
 - 2.1.2 *5 September 2019*
     - Support polite deployments
