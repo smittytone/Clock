@@ -396,6 +396,10 @@ function checkAlarms() {
                 if (!alarm.on && !alarm.done) {
                     // The alarm is not on, but should be, so turn it on now
                     alarm.on = true;
+                    
+                    // FROM 2.2.0
+                    // Signal agent
+                    agent.send("post.alarm.sms", crashReporter.timestamp());
 
                     // Set the flag to start the display flashing
                     alarmFlashState = ALARM_STATE_ON;

@@ -1,4 +1,4 @@
-# cløck 2.1.3 #
+# cløck 2.2.0 #
 
 A very simple four-digit timepiece developed using the [Electric Imp Platform](https://electricimp.com). It makes use of the [Adafruit 0.56-inch 4-digit, 7-segment LED display](http://www.adafruit.com/products/878), which is based on the Holtek HT16K33 controller.
 
@@ -41,6 +41,9 @@ Visit your cløck’s agent URL for a control interface.
 
 ## Release Notes ##
 
+- 2.2.0 *Unreleased*
+    - Signal alarms using SMS via Twilio.
+    - Update to [Bootstrap 4.4.1](https://getbootstrap.com/)
 - 2.1.3 *18 December 2019*
     - Support Rocky 3.0.0.
 - 2.1.2 *5 September 2019*
@@ -75,4 +78,4 @@ Visit your cløck’s agent URL for a control interface.
 
 ## Licence ##
 
-The cløck design and software is copyright &copy; 2014-19 by Tony Smith. It is made available under the [MIT Licence](./LICENSE).
+The cløck design and software is copyright &copy; 2014-20 by Tony Smith. It is made available under the [MIT Licence](./LICENSE).

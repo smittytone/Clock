@@ -3,6 +3,7 @@
 
 // ********** IMPORTS **********
 #require "Rocky.agent.lib.nut:3.0.0"
+#require "Twilio.class.nut:1.0"
 
 // If you are NOT using Squinter or a similar tool, replace the following #import statement(s)
 // with the contents of the named file(s):
@@ -29,6 +30,14 @@ local settings = null;
 local api = null;
 local stateChange = false;
 local slack = null;
+
+// ADDED IN 2.2.0
+// Use the following lines to enable Twilio support,
+// which requires a Twilio account (https://www.twilio.com/)
+// Assign an instance of the Twilio class (https://developer.electricimp.com/libraries/webservices/twilio) to 'twilio'
+// Assign an phone number as a string to 'target'
+local twilio = null;
+local target = null;
 
 
 // ********** FUNCTIONS **********
@@ -188,6 +197,19 @@ device.on("update.alarms", function(new) {
     settings.alarms = new;
     stateChange = true;
     if (settings.debug) server.log("Alarm list updated: " + settings.alarms.len() + " alarms listed");
+});
+
+// ADDED IN 2.2.0
+device.on("post.alarm.sms", function(alarmTime) {
+    // Signal an alarm via SMS and Twilio
+    
+    // Check that Twilio is in use
+    if (twilio != null) {
+        local msg = "impClock " + imp.configparams.deviceid + " ALARM @ " + alarmTime;
+        twilio.send(target, msg, function(response) {
+            server.log("Alarm SMS TX code: " + response.statuscode + " (" + response.body + ")");
+        });
+    }
 });
 
 // Set up the web UI and data API
