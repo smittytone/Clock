@@ -1,5 +1,5 @@
 // Clock
-// Copyright 2014-19, Tony Smith
+// Copyright 2014-20, Tony Smith
 
 // ********** IMPORTS **********
 #require "Rocky.agent.lib.nut:3.0.0"
@@ -145,6 +145,10 @@ function debugAPI(context, next) {
 // Load up the crash reporter
 #import "~/Dropbox/Programming/Imp/codes/slack.nut"
 
+// ADDED IN 2.2.0
+// Load up the Twilio handler
+#import "~/OneDrive/Programming/impClock/twilio.nut"
+
 // Initialize the clock's preferences - we will read in saved values, if any, next
 initialisePrefs();
 
@@ -202,7 +206,7 @@ device.on("update.alarms", function(new) {
 // ADDED IN 2.2.0
 device.on("post.alarm.sms", function(alarmTime) {
     // Signal an alarm via SMS and Twilio
-    
+
     // Check that Twilio is in use
     if (twilio != null) {
         local msg = "impClock " + imp.configparams.deviceid + " ALARM @ " + alarmTime;
