@@ -143,7 +143,7 @@ function debugAPI(context, next) {
 
 // ADDED IN 2.1.0
 // Load up the crash reporter
-#import "~/Dropbox/Programming/Imp/codes/slack.nut"
+#import "~/OneDrive/Programming/Generic/slack.nut"
 
 // ADDED IN 2.2.0
 // Load up the Twilio handler
