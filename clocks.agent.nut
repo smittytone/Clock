@@ -7,13 +7,13 @@
 
 // If you are NOT using Squinter or a similar tool, replace the following #import statement(s)
 // with the contents of the named file(s):
-#import "../generic/simpleslack.nut"        // Source: https://github.com/smittytone/generic
-#import "../generic/crashReporter.nut"      // Source: https://github.com/smittytone/generic
-#import "img_delete.nut"                    // Source: https://github.com/smittytone/Clock
-#import "img_silence.nut"                   // Source: https://github.com/smittytone/Clock
-#import "img_low.nut"                       // Source: https://github.com/smittytone/Clock
-#import "img_mid.nut"                       // Source: https://github.com/smittytone/Clock
-#import "img_high.nut"                      // Source: https://github.com/smittytone/Clock
+#import "../generic-squirrel/simpleslack.nut"       // Source: https://github.com/smittytone/generic-squirrel
+#import "../generic-squirrel/crashReporter.nut"     // Source: https://github.com/smittytone/generic-squirrel
+#import "img_delete.nut"                            // Source: https://github.com/smittytone/Clock
+#import "img_silence.nut"                           // Source: https://github.com/smittytone/Clock
+#import "img_low.nut"                               // Source: https://github.com/smittytone/Clock
+#import "img_mid.nut"                               // Source: https://github.com/smittytone/Clock
+#import "img_high.nut"                              // Source: https://github.com/smittytone/Clock
 const HTML_STRING = @"
 #import "clock_ui.html"
 ";                                          // Source: https://github.com/smittytone/Clock

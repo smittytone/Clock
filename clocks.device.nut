@@ -4,10 +4,10 @@
 // ********** IMPORTS **********
 // If you are NOT using Squinter or a similar tool, replace the following #import statement(s)
 // with the contents of the named file(s):
-#import "../HT16K33Segment/HT16K33Segment.class.nut"    // Source: https://github.com/smittytone/HT16K33Segment
-#import "../generic/utilities.nut"                      // Source: https://github.com/smittytone/generic
-#import "../generic/disconnect.nut"                     // Source: https://github.com/smittytone/generic
-#import "../generic/crashReporter.nut"                  // Source: https://github.com/smittytone/generic
+#import "../HT16K33Segment-Squirrel/HT16K33Segment.class.nut"   // Source: https://github.com/smittytone/HT16K33Segment
+#import "../generic-squirrel/utilities.nut"                     // Source: https://github.com/smittytone/generic-squirrel
+#import "../generic-squirrel/disconnect.nut"                    // Source: https://github.com/smittytone/generic-squirrel
+#import "../generic-squirrel/crashReporter.nut"                 // Source: https://github.com/smittytone/generic-squirrel
 
 
 // ********** CONSTANTS **********
@@ -396,7 +396,7 @@ function checkAlarms() {
                 if (!alarm.on && !alarm.done) {
                     // The alarm is not on, but should be, so turn it on now
                     alarm.on = true;
-                    
+
                     // FROM 2.2.0
                     // Signal agent
                     agent.send("post.alarm.sms", crashReporter.timestamp());
@@ -621,7 +621,7 @@ function discHandler(event) {
 // Load in generic boot message code
 // If you are NOT using Squinter or a similar tool, replace the following #import statement(s)
 // with the contents of the named file(s):
-#import "../generic/bootmessage.nut"        // Source code: https://github.com/smittytone/generic
+#import "../generic-squirrel/bootmessage.nut"        // Source code: https://github.com/smittytone/generic-squirrel
 
 // ADDED IN 2.1.0
 // Set up the crash reporter

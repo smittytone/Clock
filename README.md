@@ -41,9 +41,10 @@ Visit your cløck’s agent URL for a control interface.
 
 ## Release Notes ##
 
-- 2.2.0 *Unreleased*
+- 2.2.0 *21 May 2020*
     - Signal alarms using SMS via Twilio.
-    - Update to [Bootstrap 4.4.1](https://getbootstrap.com/)
+    - Update JQuery to 3.5.x.
+    - Update Bootstrap to 4.5.x.
 - 2.1.3 *18 December 2019*
     - Support Rocky 3.0.0.
 - 2.1.2 *5 September 2019*
